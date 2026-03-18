@@ -89,7 +89,13 @@
       <el-table-column label="序号" align="center" width="80">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="content" label="题干" align="center" />
+      <el-table-column label="题干" align="center">
+        <template slot-scope="scope">
+          <div class="question-content">
+            <div class="content-text" v-html="formatContent(scope.row.content)"></div>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="题目类型" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
@@ -253,6 +259,12 @@ export default {
     this.getQuPage()
   },
   methods: {
+    // 格式化内容，处理换行符
+    formatContent(content) {
+      if (!content) return '';
+      // 将换行符转换为<br>标签，同时保留HTML安全性
+      return content.replace(/\n/g, '<br>');
+    },
     handleRepoChangeSingle(repo) {
       ('单选题库变化:', repo)
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
@@ -431,4 +443,16 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+.question-content {
+  max-height: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.content-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  text-align: left;
+}
+</style>

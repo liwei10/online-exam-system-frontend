@@ -70,7 +70,10 @@
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
           <!-- 题干 -->
-          <p v-if="quData.content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
+          <div v-if="quData.content" class="question-content">
+            <span class="question-number">{{ quData.sort + 1 }}.</span>
+            <div class="content-text" v-html="formatContent(quData.content)"></div>
+          </div>
           <p v-if="quData.image">
             <el-image :src="quData.image"
             :preview-src="[quData.image]" 
@@ -264,6 +267,12 @@ export default {
     clearInterval(this.countdownTime)
   },
   methods: {
+    // 格式化内容，处理换行符
+    formatContent(content) {
+      if (!content) return '';
+      // 将换行符转换为<br>标签，同时保留HTML安全性
+      return content.replace(/\n/g, '<br>');
+    },
     // 检查问题列表是否存在
     hasQuestions(list) {
       return list && list.length > 0
@@ -1040,4 +1049,19 @@ page {
           display: block;
           margin: 10px;
         }
+
+.question-content {
+  margin-bottom: 15px;
+}
+
+.content-text {
+  display: inline;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.question-number {
+  margin-right: 5px;
+}
+
 </style>

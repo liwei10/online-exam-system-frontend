@@ -118,15 +118,16 @@
 
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
-          <p v-if="quDetail.content">
+          <div v-if="quDetail.content" class="question-content">
             <span :class="['question-type', {
               'single-choice': quDetail.quType === 1,
               'multiple-choice': quDetail.quType === 2,
               'judgment': quDetail.quType === 3,
               'short-answer': quDetail.quType === 4
             }]">{{ shouQuType(quDetail.quType) }}</span>
-            {{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.{{ quDetail.content }}
-          </p>
+            <span class="question-text">{{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.</span>
+            <div class="content-text" v-html="formatContent(quDetail.content)"></div>
+          </div>
           <p v-if="quDetail.image != null && quDetail.image != ''">
             <el-image 
             :src="quDetail.image" 
@@ -401,6 +402,12 @@ export default {
     this.test()
   },
   methods: {
+    // 格式化内容，处理换行符
+    formatContent(content) {
+      if (!content) return '';
+      // 将换行符转换为<br>标签，同时保留HTML安全性
+      return content.replace(/\n/g, '<br>');
+    },
     // 根据答案返回class
     getOptionClass(option) {
       // 未提交答案不做样式处理
@@ -1005,6 +1012,20 @@ page {
   background-color: #f9f0ff;
   color: #722ed1;
   border: 1px solid #d3adf7;
+}
+
+.question-content {
+  margin-bottom: 15px;
+}
+
+.content-text {
+  display: inline;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.question-text {
+  margin-right: 5px;
 }
 
 </style>

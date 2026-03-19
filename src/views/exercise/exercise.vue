@@ -118,7 +118,7 @@
 
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
-          <p v-if="quDetail.content">
+          <p v-if="quDetail.content" class="question-content">
             <span :class="['question-type', {
               'single-choice': quDetail.quType === 1,
               'multiple-choice': quDetail.quType === 2,
@@ -142,7 +142,7 @@
                 @click="handleRadioClick(item.id)"
               >
                 <!-- 给选项文本添加 getOptionClass 动态 class -->
-                <span :class="getOptionClass(item)">
+                <span :class="getOptionClass(item)" class="option-content">
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
                 <div v-if="item.image && item.image  != ''" style="clear: both">
@@ -850,6 +850,20 @@ export default {
 <style scoped>
 page {
   background: #ebecee;
+}
+
+/* 题目内容样式 - 支持换行显示 */
+.question-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* 选项内容样式 - 支持换行显示 */
+.option-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
 }
 
 .btn_anniu {

@@ -186,8 +186,8 @@
                 {{ rightQuAnswer.msg }}
               </span>
             </p>
-            <p v-if="rightQuAnswer.data">正确答案：{{ getRightAnswer() }}</p>
-            <p>试题分析：{{ rightQuAnswer.data.analysis }}</p>
+            <p v-if="rightQuAnswer.data" class="option-content">正确答案：{{ getRightAnswer() }}</p>
+            <p class="option-content">试题分析：{{ rightQuAnswer.data.analysis }}</p>
           </div>
 
           <div style="margin-top: 20px">

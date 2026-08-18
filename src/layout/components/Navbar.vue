@@ -84,9 +84,7 @@ export default {
   },
   created() {
     this.decode()
-    if (this.user && this.user.avatar) {
-      this.$store.commit('user/SET_AVATAR', this.user.avatar)
-    }
+    this.loadLatestAvatar()
   },
   methods: {
     handleTagClose(item) {
@@ -106,6 +104,13 @@ export default {
       const token = getToken()
       const user = parseJwt(token)
       this.user = JSON.parse(user.userInfo)
+    },
+    async loadLatestAvatar() {
+      try {
+        await this.$store.dispatch('user/getInfo')
+      } catch (e) {
+        // 接口失败时仍使用 token 中的头像
+      }
     },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')

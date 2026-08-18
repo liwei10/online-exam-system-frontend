@@ -468,76 +468,80 @@ export default {
 
     // 点击弹框中“确定结束”按钮后的处理：关闭弹框并进行跳转或其他后续处理
     finishExam() {
-      // 删除当前标签页
-      this.$store.commit('menu/REMOVE_TAG', {
-        title: this.$route.meta.title, // 从路由元数据中获取标题
-        path: this.$route.path,
-        name: this.$route.name // 添加路由名称
-      })
-      this.statisticsDialogVisible = false
-      this.$router.push({ name: 'exercise-center', params: { id: this.paperId }})
+      this.goBackToExerciseCenter()
     },
     // 取消弹框，不结束刷题
     onDialogCancel() {
       this.statisticsDialogVisible = false
     },
+    goBackToExerciseCenter() {
+      this.$store.commit('menu/REMOVE_TAG', {
+        title: this.$route.meta.title,
+        path: this.$route.path,
+        name: this.$route.name
+      })
+      this.statisticsDialogVisible = false
+      this.$router.push({ name: 'exercise-center' })
+    },
     async test() {
-    
-      const res = await getQuestion(null, this.repoId)
-      this.quList = res.data
+      try {
+        const res = await getQuestion(null, this.repoId)
+        this.quList = res.data
 
-      // 清空各题型数组
-      this.paperData.radioList = []
-      this.paperData.multiList = []
-      this.paperData.judgeList = []
-      this.paperData.saqList = []
+        // 清空各题型数组
+        this.paperData.radioList = []
+        this.paperData.multiList = []
+        this.paperData.judgeList = []
+        this.paperData.saqList = []
 
-      if (this.number === 1) {
-        this.quList.forEach((item) => {
-          if (item.quType === 1) {
-            this.paperData.radioList.push(item)
-          } else if (item.quType === 2) {
-            this.paperData.multiList.push(item)
-          } else if (item.quType === 3) {
-            this.paperData.judgeList.push(item)
-          } else if (item.quType === 4) {
-            this.paperData.saqList.push(item)
-          }
-        })
-        this.quList = []
-        // 初始化试题Id
-        this.initQuId()
+        if (this.number === 1) {
+          this.quList.forEach((item) => {
+            if (item.quType === 1) {
+              this.paperData.radioList.push(item)
+            } else if (item.quType === 2) {
+              this.paperData.multiList.push(item)
+            } else if (item.quType === 3) {
+              this.paperData.judgeList.push(item)
+            } else if (item.quType === 4) {
+              this.paperData.saqList.push(item)
+            }
+          })
+          this.quList = []
+          // 初始化试题Id
+          this.initQuId()
+        }
+        this.getCurrentQuDetial()
+      } catch (error) {
+        this.goBackToExerciseCenter()
       }
-      this.getCurrentQuDetial()
     },
     // 获取试题Id列表
     async getQuestionList() {
-      const res = await getQuestion(null, this.repoId)
-      this.quList = res.data
+      try {
+        const res = await getQuestion(null, this.repoId)
+        this.quList = res.data
 
-      // 按顺序
-      // if (this.number == 0) {
-      this.paperData.radioList = []
-      this.paperData.multiList = []
-      this.paperData.judgeList = []
-      this.paperData.saqList = []
-      // }
-      // 按题型
-      if (this.number === 1) {
-        this.quList.forEach((item) => {
-          if (item.quType === 1) {
-            this.paperData.radioList.push(item)
-          } else if (item.quType === 2) {
-            this.paperData.multiList.push(item)
-          } else if (item.quType === 3) {
-            this.paperData.judgeList.push(item)
-          } else if (item.quType === 4) {
-            this.paperData.saqList.push(item)
-          }
-        })
-        this.quList = []
-        // 初始化试题Id
-        this.initQuId()
+        this.paperData.radioList = []
+        this.paperData.multiList = []
+        this.paperData.judgeList = []
+        this.paperData.saqList = []
+        if (this.number === 1) {
+          this.quList.forEach((item) => {
+            if (item.quType === 1) {
+              this.paperData.radioList.push(item)
+            } else if (item.quType === 2) {
+              this.paperData.multiList.push(item)
+            } else if (item.quType === 3) {
+              this.paperData.judgeList.push(item)
+            } else if (item.quType === 4) {
+              this.paperData.saqList.push(item)
+            }
+          })
+          this.quList = []
+          this.initQuId()
+        }
+      } catch (error) {
+        this.goBackToExerciseCenter()
       }
     },
     numberToLetter(sort) {

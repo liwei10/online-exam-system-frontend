@@ -3,10 +3,10 @@
     top="2vh"
     title="考前汇总"
     :visible.sync="dialogVisible"
-    width="80%"
+    :width="isMobile ? '95%' : '80%'"
     :before-close="handleClose"
   >
-    <el-container style="height: 70vh; border: 1px solid #eee">
+    <el-container :style="{ height: isMobile ? '60vh' : '70vh', border: '1px solid #eee' }">
       <el-container>
         <el-main class="right">
           <el-col>

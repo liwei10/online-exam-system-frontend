@@ -1,11 +1,12 @@
 <template>
-  <div style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exam-page" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
     <!-- Header区域 -->
     <el-row :gutter="24">
       <el-col :span="24">
-        <el-card style="margin-bottom: 10px">
-          距离考试结束还有：
-          <exam-timer v-model="paperData.leftSeconds" @timeout="doHandler(true)" />
+        <el-card class="exam-top-bar" style="margin-bottom: 10px">
+          <span>距离考试结束还有：
+            <exam-timer v-model="paperData.leftSeconds" @timeout="doHandler(true)" />
+          </span>
           <el-button
             :loading="loading"
             style="float: right; margin-top: -10px"
@@ -19,7 +20,7 @@
       </el-col>
 
       <!-- 答题卡区域 -->
-      <el-col :span="5" :xs="24" style="margin-bottom: 10px">
+      <el-col :span="5" :xs="24" class="exam-sheet-col" :class="{ 'is-open': sheetOpen }" style="margin-bottom: 10px">
         <el-card class="content-h">
           <p class="card-title">答题卡</p>
           <el-row :gutter="24" class="card-line" style="padding-left: 10px">
@@ -34,7 +35,7 @@
             title="单选题"
             :questions="paperData.radioList"
             :current-item="cardItem"
-            @select-question="handSave"
+            @select-question="onSelectQuestion"
           />
 
           <!-- 多选题答题卡 -->
@@ -43,7 +44,7 @@
             title="多选题"
             :questions="paperData.multiList"
             :current-item="cardItem"
-            @select-question="handSave"
+            @select-question="onSelectQuestion"
           />
 
           <!-- 判断题答题卡 -->
@@ -52,7 +53,7 @@
             title="判断题"
             :questions="paperData.judgeList"
             :current-item="cardItem"
-            @select-question="handSave"
+            @select-question="onSelectQuestion"
           />
 
           <!-- 简答题答题卡 -->
@@ -61,20 +62,20 @@
             title="简答题"
             :questions="paperData.saqList"
             :current-item="cardItem"
-            @select-question="handSave"
+            @select-question="onSelectQuestion"
           />
         </el-card>
       </el-col>
 
       <!-- 单题区域 -->
-      <el-col :span="19" :xs="24">
+      <el-col :span="19" :xs="24" class="exam-question-col">
         <el-card class="qu-content content-h">
           <!-- 题干 -->
           <p v-if="quData.content" class="question-content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
           <p v-if="quData.image">
             <el-image :src="quData.image"
             :preview-src="[quData.image]" 
-            style="max-width: 200px;max-height:100%" 
+            class="question-image"
            />
           </p>
 
@@ -90,7 +91,7 @@
                 <div v-if="item.image" style="clear: both">
                   <el-image :src="item.image"
                   :preview-src="[item.image]" 
-                  style="max-width: 200px" />
+                  class="option-image" />
                 </div>
               </el-radio>
             </el-radio-group>
@@ -108,7 +109,7 @@
                 <div v-if="item.image" style="clear: both">
                   <el-image :src="item.image" 
                   :preview-src="[item.image]" 
-                  style="max-width: 200px" />
+                  class="option-image" />
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -170,13 +171,17 @@
     <el-dialog
       title="提示"
       :visible.sync="tipsFlag"
-      width="480px"
+      :width="isMobile ? '90%' : '480px'"
       class="commonDialog multi clickLight"
       center
       :close-on-click-modal="false"
     >
       {{ examMeg }}
     </el-dialog>
+    <div v-if="isMobile && sheetOpen" class="exam-sheet-mask" @click="sheetOpen = false" />
+    <button v-if="isMobile" type="button" class="exam-sheet-toggle" @click="sheetOpen = !sheetOpen">
+      {{ sheetOpen ? '收起答题卡' : '答题卡' }}
+    </button>
   </div>
 </template>
 
@@ -243,7 +248,8 @@ export default {
       answeredIds: [],
       recordData: null,
       //
-      submittedAnswers: {}
+      submittedAnswers: {},
+      sheetOpen: false
     }
   },
   created() {
@@ -264,6 +270,10 @@ export default {
     clearInterval(this.countdownTime)
   },
   methods: {
+    onSelectQuestion(item) {
+      this.handSave(item)
+      this.sheetOpen = false
+    },
     // 检查问题列表是否存在
     hasQuestions(list) {
       return list && list.length > 0
@@ -848,6 +858,11 @@ page {
 .el-checkbox-group label,
 .el-radio-group label {
   width: 100%;
+}
+
+.question-image,
+.option-image {
+  max-width: 100%;
 }
 
 .content-h {

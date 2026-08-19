@@ -1,10 +1,10 @@
 <template>
-  <div style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exam-page" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
     <!-- 开头 -->
     <el-row :gutter="24">
       <el-col :span="24">
-        <el-card style="margin-bottom: 10px">
-          题库：{{ repoTitle }}
+        <el-card class="exam-top-bar" style="margin-bottom: 10px">
+          <span>题库：{{ repoTitle }}</span>
           <el-button
             :loading="loading"
             style="float: right; margin-top: -10px"
@@ -17,7 +17,7 @@
       </el-col>
 
       <!-- 答题卡 -->
-      <el-col :span="5" :xs="24" style="margin-bottom: 10px">
+      <el-col :span="5" :xs="24" class="exam-sheet-col" :class="{ 'is-open': sheetOpen }" style="margin-bottom: 10px">
         <el-card class="content-h">
           <div class="btn_switch">
             <button
@@ -116,7 +116,7 @@
         </el-card>
       </el-col>
 
-      <el-col :span="19" :xs="24">
+      <el-col :span="19" :xs="24" class="exam-question-col">
         <el-card class="qu-content content-h">
           <p v-if="quDetail.content" class="question-content">
             <span :class="['question-type', {
@@ -130,7 +130,7 @@
           <p v-if="quDetail.image != null && quDetail.image != ''">
             <el-image 
             :src="quDetail.image" 
-            style="max-width: 100px;max-height:100%" 
+            class="question-image"
             :preview-src="[quDetail.image]" />
           </p>
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
@@ -146,7 +146,7 @@
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
                 <div v-if="item.image && item.image  != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100px" />
+                  <el-image :src="item.image" class="option-image" />
                 </div>
               </el-radio>
             </el-radio-group>
@@ -164,7 +164,7 @@
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
                 <div v-if="item.image && item.image  != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100px" />
+                  <el-image :src="item.image" class="option-image" />
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -254,7 +254,10 @@
         <el-button type="primary" @click="finishExam">结束刷题</el-button>
       </span>
     </el-dialog>
-
+    <div v-if="isMobile && sheetOpen" class="exam-sheet-mask" @click="sheetOpen = false" />
+    <button v-if="isMobile" type="button" class="exam-sheet-toggle" @click="sheetOpen = !sheetOpen">
+      {{ sheetOpen ? '收起答题卡' : '答题卡' }}
+    </button>
   </div>
 </template>
 
@@ -307,7 +310,8 @@ export default {
       debounceFlag: false,
       isAnswered: false,
       // 新增属性，控制统计弹框的显示
-      statisticsDialogVisible: false
+      statisticsDialogVisible: false,
+      sheetOpen: false
     }
   },
   computed: {
@@ -594,6 +598,7 @@ export default {
     },
     // 按题型选择题号
     selectQuId(item, index) {
+      this.sheetOpen = false
       this.resetAnswerState()
       this.curTypeIndex = index
       this.curQuId = item.quId
@@ -664,6 +669,7 @@ export default {
     },
     // 选择题号
     selectQuNum(item, index) {
+      this.sheetOpen = false
       // alert(this.nextText)
       // alert(this.rightQuAnswer);
       const loading = Loading.service({
@@ -896,6 +902,11 @@ page {
 .el-checkbox-group label,
 .el-radio-group label {
   width: 100%;
+}
+
+.question-image,
+.option-image {
+  max-width: 100%;
 }
 
 .content-h {

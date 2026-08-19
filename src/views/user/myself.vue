@@ -294,4 +294,27 @@ export default {
 .right{
   padding: 60px;
 }
+
+@media screen and (max-width: 991px) {
+  .item-contain {
+    padding: 12px;
+    height: auto;
+  }
+  .box-card {
+    width: 100% !important;
+  }
+  .card-body {
+    height: auto;
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+  .left {
+    width: 100%;
+    padding: 16px 8px;
+    border-right: none;
+  }
+  .right {
+    padding: 16px 8px;
+  }
+}
 </style>

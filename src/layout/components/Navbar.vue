@@ -1,13 +1,13 @@
 <template>
   <div class="navbar">
-    <div style="width:100%;height:66px;box-shadow: rgb(0 21 41 / 9%) 0px 1px 4px;}">
+    <div class="navbar-inner">
       <hamburger
         :is-active="sidebar.opened"
         class="hamburger-container"
         @toggleClick="toggleSideBar"
       />
 
-      <breadcrumb class="breadcrumb-container" />
+      <breadcrumb v-if="!isMobile" class="breadcrumb-container" />
 
       <div class="right-menu">
         <el-dropdown class="avatar-container" trigger="click">
@@ -32,14 +32,8 @@
     </div>
     <!-- tags -->
     <div
-      style="
-        width: 100%;
-        height: 45px;
-        background-color: write;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-      "
+      v-if="!isMobile"
+      class="tags-bar"
     >
       <template v-for="(item,index) in tags">
         <el-tag
@@ -148,6 +142,21 @@ export default {
   color: rgb(255, 255, 255);
 }
 
+.tags-bar {
+  width: 100%;
+  height: 45px;
+  background-color: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-inner {
+  width: 100%;
+  height: 66px;
+  box-shadow: rgb(0 21 41 / 9%) 0px 1px 4px;
+}
+
 .navbar {
   height: 110px;
   overflow: hidden;
@@ -200,7 +209,7 @@ export default {
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 16px;
 
       .avatar-wrapper {
         margin-top: 5px;

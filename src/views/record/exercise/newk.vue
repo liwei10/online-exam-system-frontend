@@ -259,6 +259,12 @@ export default {
   width: 70%;
   height: 100%;
 }
+
+@media screen and (max-width: 991px) {
+  .right {
+    width: 100%;
+  }
+}
 .el-divider--horizontal {
   display: block;
   height: 1px;

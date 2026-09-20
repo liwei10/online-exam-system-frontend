@@ -29,6 +29,7 @@
                           <div v-if="item.image != null && item.image != ''">
                             <el-image :src="item.image" style="max-width: 200px;" />
                           </div>
+                          <audio-player :src="item.audio" />
                         </div>
 
                         <!-- 选项区域 -->
@@ -86,6 +87,7 @@
                           <div class="qu_content">
                             <span class="qu_num">{{ index + 1 }}. </span>{{ item.title }}
                           </div>
+                          <audio-player :src="item.audio" />
                         </div>
 
                         <!-- 简答题内容区域 -->
@@ -119,8 +121,10 @@
 </template>
 
 <script>
+import AudioPlayer from '@/components/AudioPlayer'
 export default {
   name: 'ExamSummaryDialog',
+  components: { AudioPlayer },
   props: {
     visible: {
       type: Boolean,

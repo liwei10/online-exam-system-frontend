@@ -78,6 +78,7 @@
             class="question-image"
            />
           </p>
+          <audio-player :src="quData.audio" />
 
           <!-- 单选和判断题选项区域 -->
           <div v-if="quData.quType === 1 || quData.quType === 3">
@@ -198,13 +199,15 @@ import { Loading } from 'element-ui'
 import ExamTimer from '@/components/ExamTimer'
 import QuestionCardSection from './components/QuestionCardSection'
 import ExamSummaryDialog from './components/ExamSummaryDialog'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default {
   name: 'ExamProcess',
   components: {
     ExamTimer,
     QuestionCardSection,
-    ExamSummaryDialog
+    ExamSummaryDialog,
+    AudioPlayer
   },
   data() {
     return {

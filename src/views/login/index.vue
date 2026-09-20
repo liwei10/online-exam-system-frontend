@@ -110,7 +110,6 @@
 import { validUsername } from '@/utils/validate'
 import { getTokenInfo } from '@/utils/jwtUtils'
 import { verifyCode } from '@/api/user'
-import { Message } from 'element-ui'
 import { Encrypt } from '@/utils/Secret'
 export default {
   name: 'Login',
@@ -187,41 +186,32 @@ export default {
       })
     },
     handleLogin() {
-      verifyCode(this.loginForm.code).then((res) => {
-        if (res.code) {
-          this.$refs.loginForm.validate((valid) => {
-            if (valid) {
-              this.loading = true
-              const loginData = {
-                username: this.loginForm.username,
-                password: Encrypt(this.loginForm.password)
-              }
-              this.$store
-                .dispatch('user/login', loginData)
-                .then(() => {
-                  this.$store.commit('menu/CLOSE_SIDEBAR')
-                  const userInfo = getTokenInfo()
-                  this.$store.dispatch('loginUser', { id: userInfo.id })
-                  this.$router.push(this.redirect || '/index')
-
-                  this.loading = false
-                })
-                .catch((error) => {
-                  this.getVerify()
-                  Message.error(error.msg)
-                  this.loading = false
-                })
-            } else {
-              return false
-            }
+      if (this.loading) {
+        return
+      }
+      this.$refs.loginForm.validate(async(valid) => {
+        if (!valid) {
+          return
+        }
+        this.loading = true
+        try {
+          const res = await verifyCode(this.loginForm.code)
+          if (!res || res.code !== 1) {
+            return
+          }
+          await this.$store.dispatch('user/login', {
+            username: this.loginForm.username,
+            password: Encrypt(this.loginForm.password)
           })
-        } else {
-          this.loginForm.code = '' // 清空验证码输入框
+          this.$store.commit('menu/CLOSE_SIDEBAR')
+          const userInfo = getTokenInfo()
+          this.$store.dispatch('loginUser', { id: userInfo.id })
+          this.$router.push(this.redirect || '/index')
+        } catch (e) {
+          this.loginForm.code = ''
           this.getVerify()
-          this.$message({
-            type: 'info',
-            message: res.msg
-          })
+        } finally {
+          this.loading = false
         }
       })
     }

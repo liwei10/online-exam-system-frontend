@@ -2,24 +2,24 @@
   <div class="content">
     <el-upload
       v-model="fileUrl"
-      :action="server"
+      :action="action"
       :accept="accept"
       :before-remove="beforeRemove"
       :on-remove="handleRemove"
       :on-success="handleSuccess"
       :on-exceed="handleExceed"
 
-      :drag="listType !='picture'"
+      :drag="listType !== 'picture' && listType !== 'text'"
       :limit="limit"
       :headers="header"
       :file-list="fileList"
       :list-type="listType"
     >
 
-      <el-button v-if="listType==='picture'" size="small" type="primary">点击上传</el-button>
+      <el-button v-if="listType==='picture' || listType==='text'" size="small" type="primary">点击上传</el-button>
 
-      <i v-if="listType !='picture'" class="el-icon-upload" />
-      <div v-if="listType !='picture'" class="el-upload__text">
+      <i v-if="listType !== 'picture' && listType !== 'text'" class="el-icon-upload" />
+      <div v-if="listType !== 'picture' && listType !== 'text'" class="el-upload__text">
         将文件拖到此处，或
         <em>点击上传</em>
       </div>
@@ -45,6 +45,10 @@ export default {
     tips: String,
     // eslint-disable-next-line vue/require-default-prop
     listType: String,
+    action: {
+      type: String,
+      default: 'api/questions/uploadImage'
+    },
     limit: {
       type: Number,
       default: 1
@@ -52,7 +56,6 @@ export default {
   },
   data() {
     return {
-      server: `api/questions/uploadImage`,
       fileList: [],
       fileUrl: '',
       header: {}

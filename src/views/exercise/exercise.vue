@@ -133,6 +133,7 @@
             class="question-image"
             :preview-src="[quDetail.image]" />
           </p>
+          <audio-player :src="quDetail.audio" />
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
             <el-radio-group v-model="radioValue" :disabled="isAnswered">
               <el-radio
@@ -264,9 +265,11 @@
 <script>
 import { getQuestion, getQuestionDetail, submitAnswer, getAnswerInfo } from '@/api/exercise'
 import { Loading } from 'element-ui'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default {
   name: 'ExamProcess',
+  components: { AudioPlayer },
 
   data() {
     return {

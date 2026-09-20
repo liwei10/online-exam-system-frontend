@@ -35,6 +35,7 @@
           <p v-if="quData.image != null && quData.image != ''">
             <el-image :src="quData.image" style="max-width: 200px" />
           </p>
+          <audio-player :src="quData.audio" />
           <div v-if="quData.quType === 1 || quData.quType === 3">
             <!-- 选项 -->
             <el-radio-group v-model="radioValue">
@@ -147,7 +148,9 @@
 </template>
 <script>
 import { fullBook, getSingleQu, getUserBookList } from "@/api/userbook";
+import AudioPlayer from "@/components/AudioPlayer";
 export default {
+  components: { AudioPlayer },
   data() {
     return {
       repoId: "",

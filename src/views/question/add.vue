@@ -49,7 +49,8 @@
             accept=".mp3,audio/mpeg"
             list-type="text"
             action="api/questions/uploadAudio"
-            tips="仅支持 mp3，大小不超过 10MB"
+            :limit="5"
+            tips="仅支持 mp3，单个不超过 10MB，最多 5 个"
           />
           <audio-player :src="postForm.audio" />
         </el-form-item>

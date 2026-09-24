@@ -91,6 +91,8 @@ axios.defaults.withCredentials = true
 Vue.use(htmlToPdf)
 // 富文本
 Vue.use(VueQuillEditor /* { default global options } */)
+// 弹窗挂到 body，避免被页面层叠上下文压在遮罩下方发灰
+ElementUI.Dialog.props.appendToBody.default = true
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明

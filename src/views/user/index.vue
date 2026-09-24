@@ -52,34 +52,40 @@
     <!-- 新增弹窗 -->
     <el-dialog title="新增用户" :visible.sync="addUserDiologVisible">
       <el-form :model="addForm">
-      <el-row>
-        <el-col :span="11">
-          <el-form-item label="用户名" :label-width="formLabelWidth">
-            <el-input v-model="addForm.userName" autocomplete="off" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="真实姓名" :label-width="formLabelWidth">
-            <el-input v-model="addForm.realName" autocomplete="off" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col :span="11">
-          <el-form-item label="身份选择" :label-width="formLabelWidth" v-if="role == 'admin'" >
-            <el-select v-model="addForm.roleId" placeholder="请选择身份">
-              <el-option label="学生" value="1" />
-              <el-option label="教师" value="2" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="班级选择" :label-width="formLabelWidth" v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" >
-            <ClassSelect v-model="addForm.gradeId" :is-multiple="false" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item label="用户名" :label-width="formLabelWidth">
+              <el-input v-model="addForm.userName" autocomplete="off" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="11">
+            <el-form-item label="真实姓名" :label-width="formLabelWidth">
+              <el-input v-model="addForm.realName" autocomplete="off" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item v-if="role == 'admin'" label="身份选择" :label-width="formLabelWidth">
+              <el-select v-model="addForm.roleId" placeholder="请选择身份">
+                <el-option label="学生" value="1" />
+                <el-option label="教师" value="2" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="11">
+            <el-form-item v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" label="班级选择" :label-width="formLabelWidth">
+              <ClassSelect v-model="addForm.gradeId" :is-multiple="false" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-alert
+          title="新增用户无需填写密码，系统默认初始密码为 123456"
+          type="info"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 8px"
+        />
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addUserDiologVisible = false">取 消</el-button>
@@ -89,33 +95,47 @@
     <!-- 编辑弹窗 -->
     <el-dialog title="编辑用户" :visible.sync="editUserDialogVisible">
       <el-form :model="editForm">
-      <el-row>
-        <el-col :span="11">
-          <el-form-item label="用户名" :label-width="formLabelWidth">
-            <el-input v-model="editForm.userName" autocomplete="off" disabled />
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="真实姓名" :label-width="formLabelWidth">
-            <el-input v-model="editForm.realName" autocomplete="off" />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col :span="11">
-          <el-form-item label="身份选择" :label-width="formLabelWidth">
-            <el-select v-model="editForm.roleId" placeholder="请选择身份" disabled>
-              <el-option label="学生" value="1" />
-              <el-option label="教师" value="2" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="11">
-          <el-form-item label="班级选择" :label-width="formLabelWidth" v-if="editForm.roleId == '1'">
-            <ClassSelect v-model="editForm.gradeId" :is-multiple="false" />
-          </el-form-item>
-        </el-col>
-      </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item label="用户名" :label-width="formLabelWidth">
+              <el-input v-model="editForm.userName" autocomplete="off" disabled />
+            </el-form-item>
+          </el-col>
+          <el-col :span="11">
+            <el-form-item label="真实姓名" :label-width="formLabelWidth">
+              <el-input v-model="editForm.realName" autocomplete="off" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="11">
+            <el-form-item label="身份选择" :label-width="formLabelWidth">
+              <el-select v-model="editForm.roleId" placeholder="请选择身份" disabled>
+                <el-option label="学生" value="1" />
+                <el-option label="教师" value="2" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="11">
+            <el-form-item v-if="editForm.roleId == '1'" label="班级选择" :label-width="formLabelWidth">
+              <ClassSelect v-model="editForm.gradeId" :is-multiple="false" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="22">
+            <el-form-item label="重置密码" :label-width="formLabelWidth">
+              <el-input
+                v-model="editForm.password"
+                type="password"
+                show-password
+                autocomplete="new-password"
+                placeholder="留空则不重置密码"
+              />
+              <div class="form-tip">填写新密码将重置该用户密码；留空则保持原密码不变</div>
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="editUserDialogVisible = false">取 消</el-button>
@@ -183,7 +203,8 @@ export default {
         userName: '',
         realName: '',
         roleId: '',
-        gradeId: ''
+        gradeId: '',
+        password: ''
       },
       // 筛选栏表单
       searchForm: {
@@ -271,25 +292,39 @@ export default {
         userName: row.userName,
         realName: row.realName,
         roleId: row.roleId != null ? String(row.roleId) : '',
-        gradeId: row.gradeId || ''
+        gradeId: row.gradeId || '',
+        password: ''
       }
       this.editUserDialogVisible = true
     },
-    // 编辑用户逻辑
+    // 编辑用户逻辑（密码为空则不重置）
     updateUser() {
+      const password = (this.editForm.password || '').trim()
+      if (password && password.length < 6) {
+        this.$message({
+          type: 'warning',
+          message: '新密码不能少于6位'
+        })
+        return
+      }
       const data = {
         userName: this.editForm.userName,
         realName: this.editForm.realName,
         roleId: this.editForm.roleId,
         gradeId: this.editForm.gradeId || null
       }
+      if (password) {
+        // 有填写才传 password；为空表示不重置
+        data.password = password
+      }
       userUpdate(this.editForm.id, data).then((res) => {
         if (res.code) {
           this.getUserPage(this.pageNum, this.pageSize, this.searchForm.searchRealName, this.searchForm.searchClass)
           this.editUserDialogVisible = false
+          this.editForm.password = ''
           this.$message({
             type: 'success',
-            message: '修改成功!'
+            message: password ? '修改成功，密码已重置!' : '修改成功!'
           })
         } else {
           this.$message({
@@ -401,9 +436,12 @@ export default {
   }
 }
 </script>
-<style>
-.el-table--border,
-.el-table--group {
-  border: 1px solid #b3b3b3;
+<style scoped>
+/* 表格边框由全局 page.scss 统一控制 */
+.form-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #94a3b8;
 }
 </style>

@@ -77,17 +77,23 @@ body.is-mobile .el-image {
 
 .h5-card {
   background: #fff;
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 20px rgba(15, 23, 42, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.h5-card:active {
+  transform: scale(0.99);
 }
 
 .h5-card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
-  margin-bottom: 10px;
+  color: #0f172a;
+  margin-bottom: 12px;
   line-height: 1.4;
   word-break: break-word;
 }
@@ -97,13 +103,13 @@ body.is-mobile .el-image {
   justify-content: space-between;
   align-items: flex-start;
   font-size: 13px;
-  color: #606266;
+  color: #475569;
   line-height: 1.6;
   margin-bottom: 4px;
 }
 
 .h5-card-row > span:first-child {
-  color: #909399;
+  color: #94a3b8;
   flex-shrink: 0;
   margin-right: 12px;
 }
@@ -114,14 +120,16 @@ body.is-mobile .el-image {
 }
 
 .h5-card-actions {
-  margin-top: 12px;
+  margin-top: 14px;
   text-align: right;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .h5-card-empty {
   text-align: center;
-  color: #909399;
-  padding: 40px 0;
+  color: #94a3b8;
+  padding: 48px 0;
   font-size: 14px;
 }
 
@@ -195,7 +203,8 @@ body.is-mobile .exam-sheet-mask {
   top: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
 }
 
 body.is-mobile .exam-sheet-toggle {
@@ -205,14 +214,15 @@ body.is-mobile .exam-sheet-toggle {
   left: 50%;
   bottom: calc(16px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  height: 40px;
-  padding: 0 20px;
+  height: 42px;
+  padding: 0 22px;
   border: none;
-  border-radius: 20px;
-  background: #409eff;
+  border-radius: 21px;
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
   color: #fff;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.4);
 }
 
 body.is-mobile .exam-sheet-col .el-tag[style] {
@@ -221,11 +231,12 @@ body.is-mobile .exam-sheet-col .el-tag[style] {
 
 .pc-only-tip {
   display: none;
-  background: #fff7e6;
-  color: #e6a23c;
+  background: linear-gradient(90deg, #fff7ed, #ffedd5);
+  color: #c2410c;
   font-size: 12px;
-  line-height: 32px;
+  line-height: 34px;
   text-align: center;
+  border-bottom: 1px solid #fed7aa;
 }
 
 body.is-mobile .pc-only-tip {
@@ -235,15 +246,16 @@ body.is-mobile .pc-only-tip {
 @media screen and (max-width: $mobile-width) {
   .login-container .login-form {
     width: 100% !important;
-    padding: 72px 20px 80px !important;
     box-sizing: border-box;
   }
 
   .login-container .captcha-row {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
   }
 
-  .login-container .captcha-row .el-input {
-    width: 100% !important;
+  .login-container .captcha-row .captcha-img {
+    height: 48px;
+    max-width: 110px;
   }
 }

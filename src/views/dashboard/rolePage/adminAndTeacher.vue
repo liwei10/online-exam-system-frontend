@@ -7,7 +7,7 @@
         <div class="stat-card">
           <div class="icon-container">
             <el-image
-              style="width: 50px; height: 50px; margin-top: 10px"
+              style="width: 36px; height: 36px"
               :src="iconUrl.gradeImgUrl"
             />
           </div>
@@ -21,7 +21,7 @@
         <div class="stat-card">
           <div class="icon-container">
             <el-image
-              style="width: 50px; height: 50px; margin-top: 10px"
+              style="width: 36px; height: 36px"
               :src="iconUrl.questionImgUrl"
             />
           </div>
@@ -35,7 +35,7 @@
         <div class="stat-card">
           <div class="icon-container">
             <el-image
-              style="width: 50px; height: 50px; margin-top: 10px"
+              style="width: 36px; height: 36px"
               :src="iconUrl.examImgUrl"
             />
           </div>
@@ -280,7 +280,7 @@ export default {
           left: 20,
           top: 12,
           textStyle: {
-            color: '#303133',
+            color: '#0f172a',
             fontSize: 16,
             fontWeight: 600
           }
@@ -361,10 +361,10 @@ export default {
         data: this.chartData,
         legendData: this.chartDataTitle,
         colors: [
-          '#32dadd', '#5ab1ef', '#b6a2de', '#ffb980', '#d87a80',
-          '#8d98b3', '#e5cf0d', '#97b552', '#95706d', '#dc69aa',
-          '#07a2a4', '#9a7fd1', '#588dd5', '#f5994e', '#c05050',
-          '#59678c', '#c9ab00', '#7eb00a', '#6f5553', '#c14089'
+          '#14b8a6', '#0ea5e9', '#38bdf8', '#2dd4bf', '#f59e0b',
+          '#fb7185', '#64748b', '#22c55e', '#06b6d4', '#a3e635',
+          '#0d9488', '#0284c7', '#f97316', '#ef4444', '#84cc16',
+          '#475569', '#14b8a6', '#36d399', '#60a5fa', '#fbbf24'
         ]
       }), true)
     },
@@ -378,10 +378,10 @@ export default {
         data: this.chartData2,
         legendData: this.chartDataTitle2,
         colors: [
-          '#fd8585', '#ac0aac', '#4623c2', '#2cc717', '#409eff',
-          '#e6a23c', '#67c23a', '#f56c6c', '#909399', '#13c2c2',
-          '#722ed1', '#eb2f96', '#fa8c16', '#a0d911', '#1890ff',
-          '#2f54eb', '#52c41a', '#fa541c', '#c41d7f', '#08979c'
+          '#f43f5e', '#0d9488', '#0ea5e9', '#22c55e', '#f59e0b',
+          '#64748b', '#06b6d4', '#84cc16', '#fb7185', '#14b8a6',
+          '#0284c7', '#ef4444', '#10b981', '#f97316', '#38bdf8',
+          '#475569', '#2dd4bf', '#eab308', '#dc2626', '#0891b2'
         ]
       }), true)
     }
@@ -390,87 +390,94 @@ export default {
 </script>
 
 <style scoped>
-/* 统计卡片容器 */
 .stats-container {
-  margin: auto;
-  border-radius: 16px;
+  margin: 8px auto 0;
+  border-radius: 18px;
   width: 100%;
-  padding: 20px;
-  margin-top: 30px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
-  background-color: #fff;
+  padding: 22px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 253, 250, 0.9));
 }
 
 .stats-row {
   width: 100%;
-  display: flex;
-  justify-content: space-evenly;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-/* 统计卡片 */
 .stat-card {
-  /* width: 30%;
-  min-width: 250px;
-  height: 80px; */
   display: flex;
-  background-color: #fff;
-  transition: all 0.3s ease;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.1);
 }
 
 .icon-container {
   display: flex;
-  transform: translateY(-6px);
   align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ecfeff, #f0fdfa);
+  flex-shrink: 0;
 }
 
 .stat-info {
   display: flex;
-  margin-left: 10px;
   flex-direction: column;
   justify-content: center;
+  min-width: 0;
 }
 
 .stat-title {
-  font-size: 22px;
+  font-size: 14px;
   font-weight: 500;
-  /* padding: 0 0 5px 10px; */
-  color: #333;
+  color: #64748b;
 }
 
 .stat-value {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
   margin-top: 4px;
-  /* padding: 0 0 0 10px; */
-  color: #409EFF;
+  color: #0f172a;
+  letter-spacing: 0.02em;
 }
 
-/* 图表容器 */
 .charts-container {
   width: 100%;
   display: flex;
-  margin: auto;
-  margin-top: 30px;
+  margin: 20px auto 0;
   justify-content: space-between;
   align-items: stretch;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 20px;
 }
 
 .chart-box {
-  width: calc(50% - 12px);
+  width: calc(50% - 10px);
   min-width: 360px;
   box-sizing: border-box;
-  border-radius: 16px;
+  border-radius: 18px;
   height: 560px;
   padding: 12px 8px 12px 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
   background-color: #fff;
 }
 
-/* 加载状态 */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -481,29 +488,29 @@ export default {
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #409EFF;
+  width: 44px;
+  height: 44px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #0d9488;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .loading-text {
-  margin-top: 20px;
-  font-size: 18px;
-  color: #666;
+  margin-top: 18px;
+  font-size: 15px;
+  color: #64748b;
 }
 
-/* 错误提示 */
 .error-message {
   text-align: center;
-  color: #F56C6C;
-  font-size: 18px;
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #FEF0F0;
-  border-radius: 4px;
+  color: #dc2626;
+  font-size: 15px;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
 }
 
 @keyframes spin {
@@ -511,7 +518,6 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* 响应式布局 */
 @media screen and (max-width: 1200px) {
   .chart-box {
     width: 100%;
@@ -521,7 +527,7 @@ export default {
 
 @media screen and (max-width: 768px) {
   .stats-row {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .charts-container {

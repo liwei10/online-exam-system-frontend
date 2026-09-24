@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container question-form-page">
     <el-form
       ref="postForm"
       :model="postForm"
@@ -7,142 +7,165 @@
       label-position="left"
       label-width="150px"
     >
-      <el-card>
-        <el-form-item label="题目类型 " prop="quType">
-          <el-select
-            v-model="postForm.quType"
-            :disabled="quTypeDisabled"
-            class="filter-item"
-            @change="handleTypeChange"
-            style="width: 400px"
-          >
-            <el-option
-              v-for="item in quTypes"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
+      <el-card class="form-card">
+        <div class="form-section">
+          <h3 class="form-section-title">基本信息</h3>
+          <p class="form-section-desc">选择题型与归属题库</p>
+          <el-form-item label="题目类型 " prop="quType">
+            <el-select
+              v-model="postForm.quType"
+              :disabled="quTypeDisabled"
+              class="filter-item"
+              style="width: 400px"
+              @change="handleTypeChange"
+            >
+              <el-option
+                v-for="item in quTypes"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item label="归属题库" prop="repoId">
+            <repo-select v-model="postForm.repoId" :multi="false" style="width: 400px" />
+          </el-form-item>
+
+          <el-form-item label="难度" prop="level">
+            <el-rate
+              v-model="postForm.level"
+              :max="5"
+              show-text
+              :texts="levelTexts"
             />
-          </el-select>
-        </el-form-item>
+            <span class="level-tip">1 星最易，5 星最难</span>
+          </el-form-item>
+        </div>
 
-        <el-form-item label="归属题库" prop="repoId">
-          <repo-select v-model="postForm.repoId" :multi="false" style="width: 400px" />
-        </el-form-item>
+        <div class="form-section">
+          <h3 class="form-section-title">题目内容</h3>
+          <p class="form-section-desc">填写题干，可按需上传图片或音频</p>
+          <el-form-item label="题目内容" prop="content">
+            <el-input
+              v-model="postForm.content"
+              type="textarea"
+              :rows="4"
+              resize="vertical"
+              style="width: 1200px; max-width: 100%"
+            />
+          </el-form-item>
 
-        <el-form-item label="题目内容" prop="content">
-          <el-input
-            v-model="postForm.content"
-            type="textarea"
-            :rows="4"
-            resize="vertical"
-            style="width: 1200px"
-          />
-        </el-form-item>
+          <el-form-item label="试题图片" style="margin-left: 7px">
+            <file-upload v-model="postForm.image" accept=".jpg,.jepg,.png" />
+          </el-form-item>
 
-        <el-form-item label="试题图片" style="margin-left: 7px">
-          <file-upload v-model="postForm.image" accept=".jpg,.jepg,.png" />
-        </el-form-item>
+          <el-form-item label="试题音频" style="margin-left: 7px">
+            <file-upload
+              v-model="postForm.audio"
+              accept=".mp3,audio/mpeg"
+              list-type="text"
+              action="api/questions/uploadAudio"
+              :limit="5"
+              tips="仅支持 mp3，单个不超过 10MB，最多 5 个"
+            />
+            <audio-player :src="postForm.audio" />
+          </el-form-item>
+        </div>
 
-        <el-form-item label="试题音频" style="margin-left: 7px">
-          <file-upload
-            v-model="postForm.audio"
-            accept=".mp3,audio/mpeg"
-            list-type="text"
-            action="api/questions/uploadAudio"
-            :limit="5"
-            tips="仅支持 mp3，单个不超过 10MB，最多 5 个"
-          />
-          <audio-player :src="postForm.audio" />
-        </el-form-item>
-
-        <el-form-item label="整题解析" prop="oriPrice" style="margin-left: 7px">
-          <el-input
-            v-model="postForm.analysis"
-            :precision="1"
-            :max="999999"
-            type="textarea"
-            :rows="12"
-            resize="vertical"
-            style="width: 1200px"
-          />
-        </el-form-item>
+        <div class="form-section">
+          <h3 class="form-section-title">整题解析</h3>
+          <p class="form-section-desc">可选，用于考试后核对答案说明</p>
+          <el-form-item label="整题解析" prop="oriPrice" style="margin-left: 7px">
+            <el-input
+              v-model="postForm.analysis"
+              :precision="1"
+              :max="999999"
+              type="textarea"
+              :rows="12"
+              resize="vertical"
+              style="width: 1200px; max-width: 100%"
+            />
+          </el-form-item>
+        </div>
       </el-card>
 
-      <div
-        v-if="postForm.quType  != 4"
-        class="filter-container"
-        style="margin-top: 25px"
-      >
-        <el-button
-          class="filter-item"
-          type="primary"
-          icon="el-icon-plus"
-          size="small"
-          plain
-          @click="handleAdd"
-        >
-          添加
-        </el-button>
+      <el-card class="form-card options-card">
+        <div class="form-section">
+          <h3 class="form-section-title">{{ postForm.quType == 4 ? '参考答案' : '选项答案' }}</h3>
+          <p class="form-section-desc">
+            {{ postForm.quType == 4 ? '填写简答题参考答案' : '勾选正确答案，可继续添加选项' }}
+          </p>
 
-        <el-table :data="postForm.options.filter(option => !option.isDeleted)" :border="true" style="width: 90%">
-          <el-table-column label="是否答案" width="120" align="center">
-            <template v-slot="scope">
-              <el-checkbox v-model="scope.row.isRight">答案</el-checkbox>
-            </template>
-          </el-table-column>
-
-          <el-table-column
-            v-if="itemImage"
-            label="选项图片"
-            width="120px"
-            align="center"
+          <div
+            v-if="postForm.quType != 4"
+            class="filter-container"
           >
-            <template v-slot="scope">
-              <file-upload v-model="scope.row.image" accept=".jpg,.jepg,.png" />
-            </template>
-          </el-table-column>
+            <el-button
+              class="filter-item"
+              type="primary"
+              icon="el-icon-plus"
+              size="small"
+              plain
+              @click="handleAdd"
+            >
+              添加
+            </el-button>
 
-          <el-table-column label="答案内容">
-            <template v-slot="scope">
-              <el-input v-model="scope.row.content" type="textarea" />
-            </template>
-          </el-table-column>
+            <el-table :data="postForm.options.filter(option => !option.isDeleted)" :border="true" style="width: 90%">
+              <el-table-column label="是否答案" width="120" align="center">
+                <template v-slot="scope">
+                  <el-checkbox v-model="scope.row.isRight">答案</el-checkbox>
+                </template>
+              </el-table-column>
 
-          <!-- <el-table-column
-            label="答案解析"
+              <el-table-column
+                v-if="itemImage"
+                label="选项图片"
+                width="120px"
+                align="center"
+              >
+                <template v-slot="scope">
+                  <file-upload v-model="scope.row.image" accept=".jpg,.jepg,.png" />
+                </template>
+              </el-table-column>
+
+              <el-table-column label="答案内容">
+                <template v-slot="scope">
+                  <el-input v-model="scope.row.content" type="textarea" />
+                </template>
+              </el-table-column>
+
+              <el-table-column label="操作" align="center" width="100px">
+                <template v-slot="scope">
+                  <el-button
+                    type="danger"
+                    icon="el-icon-delete"
+                    circle
+                    @click="removeItem(scope.$index)"
+                  />
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <el-table
+            v-if="postForm.quType == 4"
+            :data="postForm.options"
+            :border="true"
+            style="width: 90%"
           >
-            <template v-slot="scope">
-              <el-input v-model="scope.row.analysis" type="textarea" />
-            </template>
-          </el-table-column> -->
+            <el-table-column label="答案内容">
+              <template v-slot="scope">
+                <el-input v-model="scope.row.content" type="textarea" />
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
 
-          <el-table-column label="操作" align="center" width="100px">
-            <template v-slot="scope">
-              <el-button
-                type="danger"
-                icon="el-icon-delete"
-                circle
-                @click="removeItem(scope.$index)"
-              />
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-      <el-table
-        v-if="postForm.quType == 4"
-        :data="postForm.options"
-        :border="true"
-        style="width: 90%; margin-top: 30px"
-      >
-        <el-table-column label="答案内容">
-          <template v-slot="scope">
-            <el-input v-model="scope.row.content" type="textarea" />
-          </template>
-        </el-table-column>
-      </el-table>
-      <div style="margin-top: 20px">
+      <div class="form-actions">
         <el-button type="primary" @click="submitForm">保存</el-button>
-        <el-button type="info" @click="onCancel">返回</el-button>
+        <el-button plain @click="onCancel">返回</el-button>
       </div>
     </el-form>
   </div>
@@ -166,9 +189,13 @@ export default {
       itemImage: true,
 
       levels: [
-        { value: 1, label: '普通' },
-        { value: 2, label: '较难' }
+        { value: 1, label: '很简单' },
+        { value: 2, label: '简单' },
+        { value: 3, label: '一般' },
+        { value: 4, label: '较难' },
+        { value: 5, label: '很难' }
       ],
+      levelTexts: ['很简单', '简单', '一般', '较难', '很难'],
 
       quTypes: [
         {
@@ -191,7 +218,7 @@ export default {
 
       postForm: {
         repoId: '',
-        // tagList: [],
+        level: 3,
         options: []
       },
       rules: {
@@ -235,6 +262,9 @@ export default {
           }
         })
         this.postForm = res.data
+        if (!this.postForm.level) {
+          this.$set(this.postForm, 'level', 3)
+        }
       }
     },
     handleTypeChange(v) {
@@ -392,11 +422,25 @@ export default {
 </script>
 
 <style scoped>
+.question-form-page .form-card {
+  margin-bottom: 16px;
+  border-radius: 16px;
+}
+
+.question-form-page .options-card {
+  margin-top: 4px;
+}
+
+.form-actions {
+  margin-top: 8px;
+  padding: 4px 0 12px;
+}
+
 .el-button--primary.is-plain {
-  color: #409eff;
-  background: #ecf5ff;
-  border-color: #b3d8ff;
-  margin-bottom: 25px;
+  color: #0d9488;
+  background: rgba(13, 148, 136, 0.08);
+  border-color: rgba(13, 148, 136, 0.35);
+  margin-bottom: 16px;
 }
 
 .el-form-item {
@@ -411,5 +455,11 @@ export default {
 
 .el-form-item__label {
   font-weight: 500;
+}
+
+.level-tip {
+  margin-left: 12px;
+  color: #94a3b8;
+  font-size: 13px;
 }
 </style>

@@ -88,8 +88,8 @@
           <img
             ref="captchaImg"
             class="captcha-img"
-            src="/api/auths/captcha"
-            alt=""
+            :src="captchaUrl"
+            alt="验证码"
             @click="getVerify"
           >
         </div>
@@ -153,7 +153,8 @@ export default {
         code: [{ required: true, trigger: 'blur', message: '请输入验证码' }]
       },
       loading: false,
-      passwordType: 'password'
+      passwordType: 'password',
+      captchaUrl: `/api/auths/captcha?t=${Date.now()}`
     }
   },
   computed: {
@@ -162,16 +163,27 @@ export default {
     }
   },
   created() {
-    // this.getEmail()
+    this.refreshCaptcha()
   },
   mounted() {
     this.$nextTick(() => {
-      this.$refs.username.focus()
+      this.refreshCaptcha()
+      if (this.$refs.username) {
+        this.$refs.username.focus()
+      }
     })
   },
+  activated() {
+    // keep-alive 场景下再次进入登录页也刷新
+    this.refreshCaptcha()
+  },
   methods: {
+    refreshCaptcha() {
+      this.loginForm.code = ''
+      this.captchaUrl = `/api/auths/captcha?t=${Date.now()}`
+    },
     getVerify() {
-      this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
+      this.refreshCaptcha()
     },
 
     showPwd() {
@@ -196,6 +208,7 @@ export default {
         try {
           const res = await verifyCode(this.loginForm.code)
           if (!res || res.code !== 1) {
+            this.refreshCaptcha()
             return
           }
           await this.$store.dispatch('user/login', {
@@ -207,8 +220,7 @@ export default {
           this.$store.dispatch('loginUser', { id: userInfo.id })
           this.$router.push(this.redirect || '/index')
         } catch (e) {
-          this.loginForm.code = ''
-          this.getVerify()
+          this.refreshCaptcha()
         } finally {
           this.loading = false
         }

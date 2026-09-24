@@ -55,6 +55,24 @@
     .el-button--primary {
       box-shadow: 0 6px 14px rgba(13, 148, 136, 0.18);
     }
+
+    .el-button--primary.is-plain {
+      box-shadow: none;
+    }
+
+    .el-button--default.is-plain,
+    .el-button.is-plain:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger) {
+      color: #475569;
+      background: #fff;
+      border-color: #e2e8f0;
+
+      &:hover,
+      &:focus {
+        color: vars.$primary;
+        border-color: #99f6e4;
+        background: #f0fdfa;
+      }
+    }
   }
 
   /* 表格外层卡片感 */
@@ -222,5 +240,61 @@
     &:hover {
       color: vars.$primary;
     }
+  }
+}
+
+/* 出题 / 组卷等表单分区标题 */
+.form-section {
+  margin-bottom: 8px;
+
+  & + .form-section {
+    margin-top: 20px;
+    padding-top: 8px;
+    border-top: 1px dashed #e2e8f0;
+  }
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    margin-right: 10px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #2dd4bf, #0d9488);
+    flex-shrink: 0;
+  }
+}
+
+.form-section-desc {
+  margin: -8px 0 14px 14px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.form-page-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    margin-right: 10px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #2dd4bf, #0d9488);
   }
 }

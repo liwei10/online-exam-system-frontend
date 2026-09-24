@@ -115,10 +115,11 @@ export function uploadAvatar(data) {
     data
   })
 }
-// 学生退出班级
-export function exitUserGrade() {
+// 学生退出班级（可指定 gradeId，支持多班级）
+export function exitUserGrade(gradeId) {
   return request({
     url: 'grades/user/exit',
-    method: 'put'
+    method: 'put',
+    params: gradeId ? { gradeId } : {}
   })
 }

@@ -4,21 +4,13 @@
       <div slot="header" class="clearfix">
         <span>个人信息</span>
         <el-button
-          v-if="data.gradeName == null && !isAdmin"
+          v-if="!isAdmin"
           style="float: right; padding: 3px 0; margin-right: 15px"
           type="text"
           size="mini"
           @click="addClassBt"
         >
           加入班级</el-button>
-        <el-button
-          v-if="data.gradeName != null"
-          size="mini"
-          style="float: right; padding: 3px 0; margin-right: 15px"
-          type="text"
-          @click="exitGrade"
-        >
-          退出班级</el-button>
         <el-button
           type="text"
           size="mini"
@@ -38,7 +30,13 @@
           </div>
           <div v-if="!isAdmin">
             <span>班级:</span>
-            <span> {{ data.gradeName?data.gradeName:"暂未加入班级" }} </span>
+            <div class="grade-list">
+              <div v-if="!(data.grades && data.grades.length)" class="grade-empty">暂未加入班级</div>
+              <div v-for="item in (data.grades || [])" :key="item.id" class="grade-item">
+                <el-tag size="small" effect="plain">{{ item.gradeName }}</el-tag>
+                <el-button type="text" size="mini" style="color:#f56c6c" @click="exitGrade(item)">退出</el-button>
+              </div>
+            </div>
           </div>
         </div>
         <el-dialog
@@ -112,9 +110,7 @@
 
 <script>
 import { exitUserGrade, getInfo, userAddClass, uploadAvatar } from '@/api/user'
-import { trackPresence } from '@/api/user'
-import { setToken } from '@/utils/auth'
-import { getTokenInfo, getRole } from '@/utils/jwtUtils'
+import { getRole } from '@/utils/jwtUtils'
 export default {
   data() {
     return {
@@ -129,7 +125,6 @@ export default {
     }
   },
   created() {
-    // 获取角色判断是否是教师和管理员
     const role = getRole()
     if (role === 3 || role === 2) {
       this.isAdmin = true
@@ -137,15 +132,15 @@ export default {
     this.getInfoFun()
   },
   methods: {
-    // 退出班级逻辑
-    exitGrade() {
-      this.$confirm('退出班级, 是否继续?', '提示', {
+    exitGrade(item) {
+      const name = (item && item.gradeName) || '该班级'
+      this.$confirm(`退出班级「${name}」, 是否继续?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       })
         .then(() => {
-          exitUserGrade()
+          exitUserGrade(item && item.id)
             .then((res) => {
               if (res.code) {
                 this.getInfoFun()
@@ -160,12 +155,6 @@ export default {
                 })
               }
             })
-            .catch(() => {
-              this.$message({
-                type: 'info',
-                message: '已取消退出'
-              })
-            })
         })
         .catch(() => {
           this.$message({
@@ -174,7 +163,6 @@ export default {
           })
         })
     },
-    // 获取个人系信息
     async getInfoFun() {
       const res = await getInfo()
       if (res.code) {
@@ -186,21 +174,18 @@ export default {
         this.$message.error('获取个人信息失败')
       }
     },
-    // 修改文件逻辑
     handleFileChange(file, fileList) {
-      this.fileList = fileList // 收集文件信息
+      this.fileList = fileList
     },
-    // 移除文件处理方法
     handleRemove(file, fileList) {
       if (fileList.length === 0) {
         this.hasFiles = false
       }
     },
-    // 上传文件逻辑
     importAvatar() {
       if (this.fileList.length > 0) {
-        const formData = new FormData() // 创建FormData对象
-        formData.append('file', this.fileList[0].raw) // 添加文件到formData
+        const formData = new FormData()
+        formData.append('file', this.fileList[0].raw)
         uploadAvatar(formData)
           .then((res) => {
             if (res.code) {
@@ -221,20 +206,19 @@ export default {
         this.$message.warning('请选择文件后再上传！')
       }
     },
-    // 添加班级按钮
     addClassBt() {
       this.addClassDialogVisible = true
     },
-    // 添加班级逻辑
     addClass() {
       const params = { code: this.form.code }
       userAddClass(params).then((res) => {
         if (res.code) {
           this.addClassDialogVisible = false
+          this.form.code = ''
           this.getInfoFun()
           this.$message({
             type: 'success',
-            message: '加入成功'
+            message: res.msg || '加入成功'
           })
         } else {
           this.$message({
@@ -249,7 +233,6 @@ export default {
 </script>
 
 <style scoped>
-/* 卡片样式 */
 .item-contain {
   padding: 30px 100px 0;
   display: flex;
@@ -290,6 +273,23 @@ export default {
       width: 115px;
     }
   }
+}
+.grade-list {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+  vertical-align: top;
+  width: calc(100% - 120px);
+}
+.grade-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0 !important;
+}
+.grade-empty {
+  color: #94a3b8;
+  margin-bottom: 0 !important;
 }
 .right{
   padding: 60px;

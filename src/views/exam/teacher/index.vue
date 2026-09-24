@@ -40,37 +40,39 @@
       <el-table-column fixed label="序号" align="center" width="80px">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="试卷名称" align="center" />
-      <el-table-column prop="examDuration" label="考试时间" align="center" />
-      <el-table-column prop="maxCount" label="最多切屏次数" align="center" />
-      <el-table-column prop="grossScore" label="总分" align="center" />
-      <el-table-column prop="passedScore" label="及格分" align="center" />
+      <el-table-column prop="title" label="试卷名称" align="center" min-width="140" />
+      <el-table-column prop="examDuration" label="考试时间" align="center" width="88" />
+      <el-table-column prop="maxCount" label="最多切屏次数" align="center" width="110" />
+      <el-table-column prop="grossScore" label="总分" align="center" width="70" />
+      <el-table-column prop="passedScore" label="及格分" align="center" width="70" />
       <!-- <el-table-column prop="radioCount" label="单选题数量" align="center" width="100px" />
       <el-table-column prop="multiCount" label="多选题数量" align="center" width="100px"/>
       <el-table-column prop="judgeCount" label="判断题数量" align="center" width="100px" />
       <el-table-column prop="saqCount" label="简答题数量" align="center" width="100px"/> -->
-      <el-table-column prop="startTime" label="开始时间" align="center" width="170px" />
-      <el-table-column prop="endTime" label="结束时间" align="center" width="170px" />
-      <el-table-column fixed="right" label="操作" align="center" width="170px">
+      <el-table-column prop="startTime" label="开始时间" align="center" width="160" />
+      <el-table-column prop="endTime" label="结束时间" align="center" width="160" />
+      <el-table-column fixed="right" label="操作" align="center" width="200">
         <template slot-scope="{ row }">
-          <el-button
-            type="text"
-            size="small"
-            style="color:cornflowerblue; font-size: 14px"
-            @click="showExam(row)"
-          >查看详情</el-button>
-          <el-button
-            type="text"
-            size="small"
-            style="font-size: 14px"
-            @click="updateRow(row)"
-          >编辑</el-button>
-          <el-button
-            type="text"
-            size="small"
-            style="color: red; font-size: 14px"
-            @click="delExam(row)"
-          >删除</el-button>
+          <div class="op-btns">
+            <el-button
+              type="text"
+              size="small"
+              style="color:cornflowerblue; font-size: 14px"
+              @click="showExam(row)"
+            >查看详情</el-button>
+            <el-button
+              type="text"
+              size="small"
+              style="font-size: 14px"
+              @click="updateRow(row)"
+            >编辑</el-button>
+            <el-button
+              type="text"
+              size="small"
+              style="color: red; font-size: 14px"
+              @click="delExam(row)"
+            >删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -263,7 +265,8 @@
         </el-col>
 
       </el-row>
-      <div style="display: flex; justify-content: flex-end; with: 100%">
+      <div style="display: flex; justify-content: flex-end; width: 100%; align-items: center; gap: 12px; flex-wrap: wrap">
+        <span style="flex: 1; font-size: 12px; color: #94a3b8; text-align: left">单题分值请在「查看详情」中设置；此处为题型默认分</span>
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="updateExam()">确 定</el-button>
       </div>
@@ -356,8 +359,8 @@ export default {
         })
     },
     showExam(row) {
-      localStorage.setItem("exam-details-examId", row.id)
-      this.$router.push({name: 'exam-details'})
+      localStorage.setItem('exam-details-examId', String(row.id))
+      this.$router.push({ name: 'exam-details', query: { examId: row.id }})
     },
     updateExam() {
       const data = {
@@ -419,4 +422,17 @@ export default {
   }
 }
 </script>
-<style></style>
+<style>
+.op-btns {
+  white-space: nowrap;
+}
+
+.op-btns .el-button {
+  margin-left: 4px;
+  padding: 0 2px;
+}
+
+.op-btns .el-button:first-child {
+  margin-left: 0;
+}
+</style>

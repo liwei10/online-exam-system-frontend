@@ -95,8 +95,7 @@
 </template>
 
 <script>
-import { exercisePaging } from '@/api/exercise'
-import { getCategoryTree } from '@/api/category'
+import { exercisePaging, getExerciseCategories } from '@/api/exercise'
 
 export default {
   data() {
@@ -119,6 +118,7 @@ export default {
   },
   methods: {
     queryRepo() {
+      this.pageNum = 1
       this.getExercisePage(this.pageNum, this.pageSize, this.repoTitle, this.categoryId)
     },
     // 分页查询
@@ -132,12 +132,15 @@ export default {
       const res = await exercisePaging(params)
       this.data = res.data
     },
-    // 获取分类列表
+    // 获取学生有权限的分类列表
     async fetchCategories() {
       try {
-        const res = await getCategoryTree()
+        const res = await getExerciseCategories()
         if (res.code) {
-          this.categoryOptions = this.flattenCategoryTree(res.data)
+          this.categoryOptions = (res.data || []).map((item) => ({
+            id: item.id,
+            name: item.parentName ? `${item.parentName} / ${item.name}` : item.name
+          }))
         } else {
           this.$message.error(res.msg || '获取分类数据失败')
         }
@@ -145,21 +148,6 @@ export default {
         console.error('获取分类失败:', error)
         this.$message.error('获取分类数据失败')
       }
-    },
-    // 将分类树扁平化为列表
-    flattenCategoryTree(tree, result = []) {
-      if (!tree || !tree.length) return result
-
-      tree.forEach(node => {
-        result.push({
-          id: node.id,
-          name: node.name
-        })
-        if (node.children && node.children.length > 0) {
-          this.flattenCategoryTree(node.children, result)
-        }
-      })
-      return result
     },
     screenInfo(id, repoTitle) {
       this.$router.push({ name: 'start-exercise', query: { repoId: id, repoTitle: repoTitle }})

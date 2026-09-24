@@ -583,7 +583,7 @@ export default {
     getRightAnswer() {
       // eslint-disable-next-line vue/no-template-shadow
       const arr = []
-      if (this.rightQuAnswer.data) {
+      if (this.rightQuAnswer.data && this.rightQuAnswer.data.options) {
         this.rightQuAnswer.data.options.forEach((option) => {
           if (option.isRight) {
             arr.push(this.numberToLetter(option.sort + 1))
@@ -593,11 +593,11 @@ export default {
 
       let res = arr.join(',')
       if (this.quDetail.quType === 4) {
-        res = this.rightQuAnswer.data.options[0].content
+        const opts = (this.rightQuAnswer.data && this.rightQuAnswer.data.options) || []
+        res = opts.length ? opts[0].content : ''
       }
 
       return res
-      // },100)
     },
     // 按题型选择题号
     selectQuId(item, index) {
@@ -744,27 +744,23 @@ export default {
       }
     },
     async fillAnswer() {
-      if (this.radioValue || this.multiValue.length) {
-        let params = {}
-        if (this.radioValue) {
-          params = {
-            repoId: this.quDetail.repoId,
-            quId: this.quDetail.id,
-            answer: this.radioValue,
-            quType: parseInt(this.quDetail.quType)
-          }
-        }
-        if (this.multiValue.length) {
-          params = {
-            repoId: this.quDetail.repoId,
-            quId: this.quDetail.id,
-            answer: this.multiValue.join(','),
-            quType: parseInt(this.quDetail.quType)
-          }
-        }
-        const res = await submitAnswer(params)
-        this.rightQuAnswer = res
+      const quType = parseInt(this.quDetail.quType, 10)
+      let answer = ''
+      if (quType === 1 || quType === 3) {
+        answer = this.radioValue ? String(this.radioValue) : ''
+      } else if (quType === 2) {
+        answer = (this.multiValue && this.multiValue.length) ? this.multiValue.join(',') : ''
+      } else if (quType === 4) {
+        answer = this.radioValue != null ? String(this.radioValue) : ''
       }
+      const params = {
+        repoId: this.quDetail.repoId || this.repoId,
+        quId: this.quDetail.id,
+        answer,
+        quType
+      }
+      const res = await submitAnswer(params)
+      this.rightQuAnswer = res || {}
       this.getQuestionList()
     },
     async showButton() {

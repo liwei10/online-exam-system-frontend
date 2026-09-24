@@ -94,7 +94,7 @@
           <div class="question-content">{{ scope.row.content }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="题目类型" align="center">
+      <el-table-column label="题目类型" align="center" width="88">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
           <span v-else-if="scope.row.quType == 2">多选题</span>
@@ -102,22 +102,50 @@
           <span v-else-if="scope.row.quType == 4">简答题</span>
         </template>
       </el-table-column>
-      <el-table-column prop="repoTitle" label="所属题库" align="center" />
-      <el-table-column prop="createTime" label="创建时间" align="center" />
-      <el-table-column align="center" label="操作">
+      <el-table-column label="难度" align="center" width="140">
         <template slot-scope="{ row }">
-          <el-button
-            type="text"
-            size="small"
-            style="font-size: 14px"
-            @click="updateRow(row)"
-          >编辑</el-button>
-          <el-button
-            type="text"
-            size="small"
-            style="color: red; font-size: 14px"
-            @click="delQu(row)"
-          >删除</el-button>
+          <el-rate
+            :value="row.level || 3"
+            disabled
+            :max="5"
+            style="display: inline-block; vertical-align: middle"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column prop="repoTitle" label="所属题库" align="center" min-width="120" />
+      <el-table-column prop="createTime" label="创建时间" align="center" width="160" />
+      <el-table-column align="center" label="操作" width="250">
+        <template slot-scope="{ row }">
+          <div class="op-btns">
+            <el-button
+              type="text"
+              size="small"
+              style="font-size: 14px"
+              :disabled="!selectedRepoSingleSearch"
+              title="请先筛选具体题库后再排序"
+              @click="moveQu(row, 'up')"
+            >上移</el-button>
+            <el-button
+              type="text"
+              size="small"
+              style="font-size: 14px"
+              :disabled="!selectedRepoSingleSearch"
+              title="请先筛选具体题库后再排序"
+              @click="moveQu(row, 'down')"
+            >下移</el-button>
+            <el-button
+              type="text"
+              size="small"
+              style="font-size: 14px"
+              @click="updateRow(row)"
+            >编辑</el-button>
+            <el-button
+              type="text"
+              size="small"
+              style="color: red; font-size: 14px"
+              @click="delQu(row)"
+            >删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -164,7 +192,7 @@
 </template>
 
 <script>
-import { quPaging, quDel, quUpdate, importQue } from '@/api/question'
+import { quPaging, quDel, quUpdate, importQue, quSort } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 
 export default {
@@ -254,7 +282,25 @@ export default {
     // },
   },
   created() {
-    this.getQuPage()
+    this.restoreListState()
+    this.getQuPage(
+      this.pageNum,
+      this.pageSize,
+      this.searchName,
+      this.selectedRepoSingleSearch,
+      this.selValue
+    )
+  },
+  activated() {
+    if (this.restoreListState()) {
+      this.getQuPage(
+        this.pageNum,
+        this.pageSize,
+        this.searchName,
+        this.selectedRepoSingleSearch,
+        this.selValue
+      )
+    }
   },
   methods: {
     handleRepoChangeSingle(repo) {
@@ -262,8 +308,30 @@ export default {
       // 这里可以进一步处理repo对象，比如更新UI或发送网络请求等
     },
     updateRow(row) {
+      this.saveListState()
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
+    },
+    async moveQu(row, direction) {
+      if (!this.selectedRepoSingleSearch) {
+        this.$message.warning('请先筛选具体题库后再调整顺序')
+        return
+      }
+      try {
+        const res = await quSort(row.id, direction)
+        if (res.code) {
+          this.$message.success(res.msg || '排序已更新')
+          this.getQuPage(
+            this.pageNum,
+            this.pageSize,
+            this.searchName,
+            this.selectedRepoSingleSearch,
+            this.selValue
+          )
+        }
+      } catch (e) {
+        // 错误已由拦截器提示
+      }
     },
     importQu() {
       if (this.fileList && this.fileList.length > 0 && this.selectedRepoSingle  != '') {
@@ -400,7 +468,32 @@ export default {
     },
 
     screenInfo(row, index, done) {
+      this.saveListState()
       this.$router.push({ name: 'questions-add', query: { zhi: row }})
+    },
+    saveListState() {
+      sessionStorage.setItem('questions-list-state', JSON.stringify({
+        pageNum: this.pageNum,
+        pageSize: this.pageSize,
+        searchName: this.searchName,
+        selectedRepoSingleSearch: this.selectedRepoSingleSearch,
+        selValue: this.selValue
+      }))
+    },
+    restoreListState() {
+      try {
+        const raw = sessionStorage.getItem('questions-list-state')
+        if (!raw) return false
+        const state = JSON.parse(raw)
+        this.pageNum = state.pageNum || 1
+        this.pageSize = state.pageSize || 10
+        this.searchName = state.searchName || ''
+        this.selectedRepoSingleSearch = state.selectedRepoSingleSearch || ''
+        this.selValue = state.selValue || ''
+        return true
+      } catch (e) {
+        return false
+      }
     },
 
     handleSizeChange(val) {
@@ -441,5 +534,18 @@ export default {
   white-space: pre-wrap;
   line-height: 1.6;
   word-wrap: break-word;
+}
+
+.op-btns {
+  white-space: nowrap;
+}
+
+.op-btns .el-button {
+  margin-left: 4px;
+  padding: 0 2px;
+}
+
+.op-btns .el-button:first-child {
+  margin-left: 0;
 }
 </style>

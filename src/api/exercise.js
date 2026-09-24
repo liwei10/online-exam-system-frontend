@@ -16,6 +16,13 @@ export function exercisePaging(params) {
   })
 }
 
+export function getExerciseCategories() {
+  return request({
+    url: 'exercises/categories',
+    method: 'get'
+  })
+}
+
 export function getQuestion(params, repoId) {
   return request({
     url: 'exercises/' + repoId,

@@ -8,10 +8,10 @@
       <el-form-item label="班级">
         <ClassSelect v-model="searchForm.searchClass" :is-multiple="false" />
       </el-form-item>
-      <el-form-item>
+      <el-form-item class="toolbar-actions">
         <el-button type="primary" @click="searchUser">查询</el-button>
-        <el-button type="primary" @click="addUserDiologVisible = true">新增</el-button>
-        <el-button type="primary" @click="fileDialogVisible = true">导入</el-button>
+        <el-button type="primary" plain @click="addUserDiologVisible = true">新增</el-button>
+        <el-button plain @click="fileDialogVisible = true">导入</el-button>
       </el-form-item>
     </el-form>
     <el-table :data="data.records" border fit highlight-current-row :header-cell-style="{
@@ -28,16 +28,27 @@
       </el-table-column>
       <el-table-column prop="userName" label="用户名" align="center" />
       <el-table-column prop="realName" label="真实姓名" align="center" />
-      <el-table-column prop="roleId" label="角色名称" align="center" >
-      <template slot-scope="{ row }">
-        <span v-if="row.roleId == 1">学生</span>
-        <span v-if="row.roleId == 2">教师</span>
-        <span v-if="row.roleId == 3">管理员</span>
-      </template>
+      <el-table-column prop="roleId" label="角色名称" align="center" width="110">
+        <template slot-scope="{ row }">
+          <span class="role-tag" :class="'role-' + row.roleId">{{ roleLabel(row.roleId) }}</span>
+        </template>
       </el-table-column>
-      <el-table-column prop="gradeName" label="班级" align="center" />
+      <el-table-column prop="gradeName" label="班级" align="center" min-width="160">
+        <template slot-scope="{ row }">
+          <template v-if="row.grades && row.grades.length">
+            <el-tag
+              v-for="g in row.grades"
+              :key="g.id"
+              size="mini"
+              effect="plain"
+              style="margin: 2px"
+            >{{ g.gradeName }}</el-tag>
+          </template>
+          <span v-else>{{ row.gradeName || '-' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="createTime" label="注册时间" align="center" />
-      <el-table-column align="center" label="操作">
+      <el-table-column align="center" label="操作" width="140">
         <template slot-scope="{ row }">
           <el-button v-if="(role == 'teacher' && row.roleId == 1) || (role == 'admin' && row.roleId != 3)" type="text" size="small" style="font-size: 14px"
             @click="openEditUser(row)">编辑</el-button>
@@ -75,7 +86,7 @@
           </el-col>
           <el-col :span="11">
             <el-form-item v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" label="班级选择" :label-width="formLabelWidth">
-              <ClassSelect v-model="addForm.gradeId" :is-multiple="false" />
+              <ClassSelect v-model="addForm.gradeIds" is-multiple />
             </el-form-item>
           </el-col>
         </el-row>
@@ -93,7 +104,7 @@
       </div>
     </el-dialog>
     <!-- 编辑弹窗 -->
-    <el-dialog title="编辑用户" :visible.sync="editUserDialogVisible">
+    <el-dialog title="编辑用户" :visible.sync="editUserDialogVisible" width="640px">
       <el-form :model="editForm">
         <el-row>
           <el-col :span="11">
@@ -116,9 +127,28 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="11">
-            <el-form-item v-if="editForm.roleId == '1'" label="班级选择" :label-width="formLabelWidth">
-              <ClassSelect v-model="editForm.gradeId" :is-multiple="false" />
+        </el-row>
+        <el-row v-if="editForm.roleId == '1'">
+          <el-col :span="22">
+            <el-form-item label="班级选择" :label-width="formLabelWidth">
+              <ClassSelect v-model="editForm.gradeIds" is-multiple @change="onEditGradesChange" />
+              <div class="form-tip">支持多选与搜索；下方列出当前已加入的班级</div>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-if="editForm.roleId == '1'">
+          <el-col :span="22">
+            <el-form-item label="已加入班级" :label-width="formLabelWidth">
+              <div v-if="!(editForm.grades && editForm.grades.length)" class="grade-empty">暂未加入班级</div>
+              <div v-else class="joined-grades">
+                <el-tag
+                  v-for="g in editForm.grades"
+                  :key="g.id"
+                  size="small"
+                  effect="plain"
+                  style="margin: 0 6px 6px 0"
+                >{{ g.gradeName }}</el-tag>
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -195,7 +225,7 @@ export default {
         userName: '',
         realName: '',
         roleId: '',
-        gradeId: ''
+        gradeIds: []
       },
       // 编辑用户表单
       editForm: {
@@ -203,7 +233,8 @@ export default {
         userName: '',
         realName: '',
         roleId: '',
-        gradeId: '',
+        gradeIds: [],
+        grades: [],
         password: ''
       },
       // 筛选栏表单
@@ -212,7 +243,7 @@ export default {
         searchClass: ''
       },
       // eslint-disable-next-line no-dupe-keys
-      formLabelWidth: '80px'
+      formLabelWidth: '90px'
     }
   },
   created() {
@@ -222,6 +253,10 @@ export default {
     this.getUserPage()
   },
   methods: {
+    roleLabel(roleId) {
+      const map = { 1: '学生', 2: '教师', 3: '管理员' }
+      return map[roleId] || '未知'
+    },
     // 分页查询用户
     async getUserPage(pageNum, pageSize, realName = null, gradeId = null) {
       const params = {
@@ -256,11 +291,13 @@ export default {
     },
     // 添加用户逻辑
     addUser() {
+      const gradeIds = Array.isArray(this.addForm.gradeIds) ? this.addForm.gradeIds : []
       const data = {
         userName: this.addForm.userName,
         realName: this.addForm.realName,
         roleId: this.addForm.roleId,
-        gradeId: this.addForm.gradeId
+        gradeIds: gradeIds.join(','),
+        gradeId: gradeIds.length ? gradeIds[0] : null
       }
       classAdd(data).then((res) => {
         if (res.code) {
@@ -268,7 +305,7 @@ export default {
           this.addForm.userName = ''
           this.addForm.realName = ''
           this.addForm.roleId = ''
-          this.addForm.gradeId = ''
+          this.addForm.gradeIds = []
           // 刷新页面数据
           this.getUserPage(this.pageNum, this.pageSize)
           // 关闭新增用户对话框
@@ -287,15 +324,26 @@ export default {
     },
     // 打开编辑用户对话框
     openEditUser(row) {
+      const grades = Array.isArray(row.grades) ? row.grades.map((g) => ({ ...g })) : []
+      const gradeIds = grades.length
+        ? grades.map((g) => g.id)
+        : (row.gradeId ? [row.gradeId] : [])
       this.editForm = {
         id: row.id,
         userName: row.userName,
         realName: row.realName,
         roleId: row.roleId != null ? String(row.roleId) : '',
-        gradeId: row.gradeId || '',
+        gradeIds,
+        grades,
         password: ''
       }
       this.editUserDialogVisible = true
+    },
+    onEditGradesChange(classes) {
+      this.editForm.grades = (classes || []).map((c) => ({
+        id: c.id,
+        gradeName: c.gradeName
+      }))
     },
     // 编辑用户逻辑（密码为空则不重置）
     updateUser() {
@@ -307,11 +355,13 @@ export default {
         })
         return
       }
+      const gradeIds = Array.isArray(this.editForm.gradeIds) ? this.editForm.gradeIds : []
       const data = {
         userName: this.editForm.userName,
         realName: this.editForm.realName,
         roleId: this.editForm.roleId,
-        gradeId: this.editForm.gradeId || null
+        gradeIds: gradeIds.join(','),
+        gradeId: gradeIds.length ? gradeIds[0] : null
       }
       if (password) {
         // 有填写才传 password；为空表示不重置
@@ -443,5 +493,43 @@ export default {
   font-size: 12px;
   line-height: 1.4;
   color: #94a3b8;
+}
+
+.role-tag {
+  display: inline-block;
+  min-width: 52px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.role-1 {
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+.role-2 {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.role-3 {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.grade-empty {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.joined-grades {
+  line-height: 1.8;
+}
+
+.class-selector {
+  width: 100%;
 }
 </style>

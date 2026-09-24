@@ -38,6 +38,14 @@ export function quDetail(id) {
   })
 }
 
+export function quSort(id, direction) {
+  return request({
+    url: `questions/${id}/sort`,
+    method: 'put',
+    params: { direction }
+  })
+}
+
 export function importQue(id, data) {
   return request({
     url: `questions/import/${id}`,

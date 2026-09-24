@@ -1,6 +1,7 @@
 <template>
-  <div class="app-container">
-    <h3>组卷信息</h3>
+  <div class="app-container exam-form-page">
+    <h3 class="form-page-title">组卷信息</h3>
+    <p class="form-section-desc page-desc">选择题库抽题或手动选题组成试卷</p>
     <el-tabs type="border-card" @tab-click="handleClick" v-model="activeName">
       <el-tab-pane label="自己选题" name="first">
         <ChooseQuestion
@@ -153,8 +154,9 @@
       </el-tab-pane>
     </el-tabs>
 
-    <h3>考试配置</h3>
-    <el-card style="margin-top: 20px">
+    <h3 class="form-page-title section-gap">考试配置</h3>
+    <p class="form-section-desc page-desc">设置考试名称、分数、时长与时间范围</p>
+    <el-card class="form-card">
       <el-form
         ref="postForm"
         :model="postForm"
@@ -162,71 +164,55 @@
         label-position="left"
         label-width="120px"
       >
-        <el-form-item label="考试名称" prop="title">
-          <el-input v-model="postForm.title" />
-        </el-form-item>
+        <div class="form-section">
+          <h4 class="form-section-title">基础设置</h4>
+          <el-form-item label="考试名称" prop="title">
+            <el-input v-model="postForm.title" />
+          </el-form-item>
 
-        <!-- <el-form-item label="考试描述" prop="content">
-          <el-input v-model="postForm.content" type="textarea" />
-        </el-form-item> -->
+          <el-form-item label="总分数" prop="totalScore">
+            <el-input-number :value="postForm.totalScore" disabled />
+          </el-form-item>
 
-        <el-form-item label="总分数" prop="totalScore">
-          <el-input-number :value="postForm.totalScore" disabled />
-        </el-form-item>
+          <el-form-item label="及格分" prop="passedScore">
+            <el-input-number
+              v-model="postForm.passedScore"
+              :max="postForm.totalScore"
+            />
+          </el-form-item>
+        </div>
 
-        <el-form-item label="及格分" prop="passedScore">
-          <el-input-number
-            v-model="postForm.passedScore"
-            :max="postForm.totalScore"
-          />
-        </el-form-item>
-
-        <el-form-item label="最多切屏次数" prop="maxCount">
-          <el-input-number v-model="postForm.maxCount" />
-        </el-form-item>
-        <el-form-item label="证书" prop="maxCount">
-          <CertificateSelect
-            v-model="postForm.certificateId"
-            is-multiple
-            @change="onCertificateChange"
-          />
-          <!-- <el-input-number v-model="postForm.maxCount"  /> -->
-        </el-form-item>
-        <el-form-item label="考试时长(分钟)" prop="examDuration">
-          <el-input-number v-model="postForm.examDuration" />
-        </el-form-item>
-        <el-form-item label="考试时间范围" prop="start">
-          <el-date-picker
-            v-model="postForm.start"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-          />
-        </el-form-item>
-        <!--
-        <el-form-item label="是否限时">
-          <el-checkbox v-model="postForm.timeLimit" />
-        </el-form-item> -->
-
-        <!-- <el-form-item
-          v-if="postForm.timeLimit"
-          label="考试时间"
-          prop="examDuration"
-        >
-          <el-date-picker
-            v-model="dateValues"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-          />
-        </el-form-item> -->
+        <div class="form-section">
+          <h4 class="form-section-title">规则与证书</h4>
+          <el-form-item label="最多切屏次数" prop="maxCount">
+            <el-input-number v-model="postForm.maxCount" />
+          </el-form-item>
+          <el-form-item label="证书" prop="maxCount">
+            <CertificateSelect
+              v-model="postForm.certificateId"
+              is-multiple
+              @change="onCertificateChange"
+            />
+          </el-form-item>
+          <el-form-item label="考试时长(分钟)" prop="examDuration">
+            <el-input-number v-model="postForm.examDuration" />
+          </el-form-item>
+          <el-form-item label="考试时间范围" prop="start">
+            <el-date-picker
+              v-model="postForm.start"
+              type="datetimerange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            />
+          </el-form-item>
+        </div>
       </el-form>
     </el-card>
 
-    <h3>权限配置</h3>
-    <el-card style="margin-top: 20px">
+    <h3 class="form-page-title section-gap">权限配置</h3>
+    <p class="form-section-desc page-desc">指定可参加本次考试的班级</p>
+    <el-card class="form-card">
       <div style="display: flex">
         <div style="margin-left: 10px">
           <el-form
@@ -657,3 +643,18 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.exam-form-page .page-desc {
+  margin: -6px 0 14px 14px;
+}
+
+.exam-form-page .section-gap {
+  margin-top: 28px;
+}
+
+.exam-form-page .form-card {
+  margin-top: 4px;
+  border-radius: 16px;
+}
+</style>

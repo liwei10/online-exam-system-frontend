@@ -47,6 +47,31 @@
       </div>
     </div>
 
+    <!-- 快捷操作 -->
+    <div class="quick-panel">
+      <div class="panel-head">
+        <h3>快捷操作</h3>
+        <p>常用管理入口，一键直达</p>
+      </div>
+      <div class="quick-grid">
+        <button
+          v-for="item in quickActions"
+          :key="item.path"
+          type="button"
+          class="quick-item"
+          @click="goQuick(item.path)"
+        >
+          <span class="quick-icon" :class="item.tone">
+            <i :class="item.icon" />
+          </span>
+          <span class="quick-text">
+            <strong>{{ item.title }}</strong>
+            <em>{{ item.desc }}</em>
+          </span>
+        </button>
+      </div>
+    </div>
+
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-container">
       <div class="loading-spinner" />
@@ -100,7 +125,18 @@ export default {
 
       // 图表实例
       classChartInstance: null,
-      examChartInstance: null
+      examChartInstance: null,
+
+      quickActions: [
+        { title: '用户管理', desc: '新增与维护账号', path: '/user-management', icon: 'el-icon-user', tone: 'teal' },
+        { title: '班级管理', desc: '班级与口令', path: '/class-management', icon: 'el-icon-office-building', tone: 'blue' },
+        { title: '考试管理', desc: '查看与发布试卷', path: '/exam-management', icon: 'el-icon-document', tone: 'amber' },
+        { title: '新增考试', desc: '快速创建试卷', path: '/exam-add', icon: 'el-icon-plus', tone: 'rose' },
+        { title: '题库管理', desc: '题库分类维护', path: '/repo-management', icon: 'el-icon-folder-opened', tone: 'cyan' },
+        { title: '试题管理', desc: '录入与编辑试题', path: '/questions-management', icon: 'el-icon-edit-outline', tone: 'indigo' },
+        { title: '阅卷管理', desc: '批改主观题', path: '/answer-manage/marking-management', icon: 'el-icon-s-check', tone: 'green' },
+        { title: '成绩分析', desc: '查看考试成绩', path: '/score-analysis/score-analysis', icon: 'el-icon-data-analysis', tone: 'slate' }
+      ]
     }
   },
 
@@ -151,6 +187,9 @@ export default {
   },
 
   methods: {
+    goQuick(path) {
+      this.$router.push(path)
+    },
     // 获取所有数据
     async fetchAllData() {
       this.loading = true
@@ -456,6 +495,98 @@ export default {
   letter-spacing: 0.02em;
 }
 
+.quick-panel {
+  margin-top: 20px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.panel-head h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.panel-head p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.quick-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.quick-item:hover {
+  transform: translateY(-2px);
+  border-color: #99f6e4;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(13, 148, 136, 0.1);
+}
+
+.quick-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.quick-icon.teal { background: linear-gradient(135deg, #2dd4bf, #0d9488); }
+.quick-icon.blue { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+.quick-icon.amber { background: linear-gradient(135deg, #fbbf24, #d97706); }
+.quick-icon.rose { background: linear-gradient(135deg, #fb7185, #e11d48); }
+.quick-icon.cyan { background: linear-gradient(135deg, #22d3ee, #0891b2); }
+.quick-icon.indigo { background: linear-gradient(135deg, #818cf8, #4f46e5); }
+.quick-icon.green { background: linear-gradient(135deg, #4ade80, #16a34a); }
+.quick-icon.slate { background: linear-gradient(135deg, #94a3b8, #475569); }
+
+.quick-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.quick-text strong {
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.quick-text em {
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .charts-container {
   width: 100%;
   display: flex;
@@ -523,10 +654,18 @@ export default {
     width: 100%;
     height: 520px;
   }
+
+  .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media screen and (max-width: 768px) {
   .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-grid {
     grid-template-columns: 1fr;
   }
 

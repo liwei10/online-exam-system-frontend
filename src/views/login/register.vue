@@ -122,8 +122,8 @@
           <img
             ref="captchaImg"
             class="captcha-img"
-            src="/api/auths/captcha"
-            alt=""
+            :src="captchaUrl"
+            alt="验证码"
             @click="getVerify"
           >
         </div>
@@ -209,7 +209,8 @@ export default {
       loading: false,
       passwordType: 'password',
       checkedPasswordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      captchaUrl: `/api/auths/captcha?t=${Date.now()}`
     }
   },
   watch: {
@@ -221,9 +222,21 @@ export default {
     }
   },
   created() {
-    // this.getEmail()
+    this.refreshCaptcha()
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.refreshCaptcha()
+    })
+  },
+  activated() {
+    this.refreshCaptcha()
   },
   methods: {
+    refreshCaptcha() {
+      this.registerForm.code = ''
+      this.captchaUrl = `/api/auths/captcha?t=${Date.now()}`
+    },
     registerFn() {
       this.$refs.registerForm.validate(valid => {
         if (valid) {
@@ -244,7 +257,7 @@ export default {
                   })
                   this.$router.push({ path: '/login' })
                 } else {
-                  this.getVerify()
+                  this.refreshCaptcha()
                   Message({
                     message: res2.msg,
                     type: 'error',
@@ -252,7 +265,7 @@ export default {
                   })
                 }
               }).catch(() => {
-                this.getVerify()
+                this.refreshCaptcha()
                 Message({
                   message: '注册失败，请重试',
                   type: 'error',
@@ -260,7 +273,7 @@ export default {
                 })
               })
             } else {
-              this.getVerify()
+              this.refreshCaptcha()
               Message({
                 message: res.msg || '验证码验证失败',
                 type: 'error',
@@ -268,7 +281,7 @@ export default {
               })
             }
           }).catch(() => {
-            this.getVerify()
+            this.refreshCaptcha()
             Message({
               message: '验证码验证失败',
               type: 'error',
@@ -285,7 +298,7 @@ export default {
       })
     },
     getVerify() {
-      this.$refs.captchaImg.src = `/api/auths/captcha?${Math.random()}`
+      this.refreshCaptcha()
     },
 
     showPwd() {

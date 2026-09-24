@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <!-- form -->
 
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
@@ -73,28 +78,28 @@
     </el-dialog>
     <!-- table -->
 
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="content" label="题干" align="center">
+      <el-table-column show-overflow-tooltip min-width="160" prop="content" label="题干" align="center">
         <template slot-scope="scope">
           <div class="question-content">{{ scope.row.content }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="题目类型" align="center" width="88">
+      <el-table-column label="题目类型" align="center" min-width="88">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
           <span v-else-if="scope.row.quType == 2">多选题</span>
@@ -102,7 +107,7 @@
           <span v-else-if="scope.row.quType == 4">简答题</span>
         </template>
       </el-table-column>
-      <el-table-column label="难度" align="center" width="140">
+      <el-table-column label="难度" align="center" min-width="140">
         <template slot-scope="{ row }">
           <el-rate
             :value="row.level || 3"
@@ -113,8 +118,8 @@
         </template>
       </el-table-column>
       <el-table-column prop="repoTitle" label="所属题库" align="center" min-width="120" />
-      <el-table-column prop="createTime" label="创建时间" align="center" width="160" />
-      <el-table-column align="center" label="操作" width="250">
+      <el-table-column class-name="datetime-col" prop="createTime" label="创建时间" align="center" min-width="160" />
+      <el-table-column align="center" label="操作" min-width="250">
         <template slot-scope="{ row }">
           <div class="op-btns">
             <el-button
@@ -195,7 +200,9 @@
 import { quPaging, quDel, quUpdate, importQue, quSort } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   components: { RepoSelect },
   data() {
     return {
@@ -377,16 +384,21 @@ export default {
     },
     // 分页查询
     async getQuPage(pageNum, pageSize, content = null, repoId = null, type = null) {
-      const params = {
-        pageNum: pageNum,
-        pageSize: pageSize,
-        content: content,
-        repoId: repoId,
-        type: type
-      }
-      const res = await quPaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = {
+          pageNum: pageNum,
+          pageSize: pageSize,
+          content: content,
+          repoId: repoId,
+          type: type
+        }
+        const res = await quPaging(params)
+        this.data = res.data
+
+      })
+
+      },
     // 编辑题库
     updateQu() {
       quUpdate(this.form.id, { title: this.form.title })

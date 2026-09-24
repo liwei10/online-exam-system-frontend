@@ -1,5 +1,12 @@
 <template>
-  <el-container style="height: 100vh; border: 1px solid #eee">
+  <el-container
+    v-loading="loading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="record-detail-page page-loading-host"
+    style="height: 100vh; border: 1px solid #eee"
+  >
     <!-- <div class="left">
       <div class="fk">
         <div
@@ -27,8 +34,8 @@
           </div>
           <el-divider></el-divider>
           <p>
-            共 <span style="color: #1890ff">5 </span> 题, 共
-            <span style="color: #1890ff">100</span> 分
+            共 <span style="color: #0f766e">5 </span> 题, 共
+            <span style="color: #0f766e">100</span> 分
           </p>
           <el-row>
             <el-tag
@@ -48,9 +55,12 @@
       <el-main class="right">
         <el-col>
           <el-card class="qu_list">
+            <div v-if="!loading && !(data && data.length)" class="record-empty">
+              暂无题目详情
+            </div>
             <div>
               <!-- eslint-disable-next-line vue/no-template-shadow -->
-              <template v-for="(index, indexx) in data">
+              <template v-for="(index, indexx) in (data || [])">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
                 <div
                   v-if="
@@ -236,6 +246,7 @@ export default {
       examId: 0,
       data: null,
       userId: null,
+      loading: false,
       index: {
         quType: 4, // 确保这里有一个值
       },
@@ -291,9 +302,17 @@ export default {
     },
     // 分页查询
     async ExamDetail() {
-      const params = { examId: this.examId, userId: this.userId };
-      const res = await recordExamDetail(params);
-      this.data = res.data;
+      this.loading = true;
+      try {
+        const params = { examId: this.examId, userId: this.userId };
+        const res = await recordExamDetail(params);
+        this.data = res.data || [];
+      } catch (e) {
+        this.data = [];
+        this.$message.error("查询考试记录失败，请稍后重试");
+      } finally {
+        this.loading = false;
+      }
     },
     // 点击答题卡题号, 右侧题目滑动
     handleTag(index) {
@@ -308,10 +327,22 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.record-detail-page {
+  position: relative;
+  min-height: 360px;
+}
+
+.record-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: #7d9590;
+  font-size: 14px;
+}
+
 .content {
   width: 97%;
   height: 60px;
-  border: 1px solid #0a84ff;
+  border: 1px solid #0f766e;
   margin-top: 8px;
   margin-left: 10px;
   padding: 10px;
@@ -413,7 +444,7 @@ export default {
         // 选项标签
         .qu_choose_tag_type {
           font-weight: bold;
-          // color: #0a84ff;
+          // color: #0f766e;
           width: 10px;
         }
         // 选项内容

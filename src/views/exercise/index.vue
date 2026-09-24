@@ -1,6 +1,11 @@
 
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" class="demo-form-inline">
       <el-form-item label="题库名称：">
         <el-input v-model="repoTitle" />
@@ -20,7 +25,7 @@
       </el-form-item>
     </el-form>
 
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
@@ -28,26 +33,26 @@
       highlight-current-row
       empty-text="暂无本班可刷题库，请联系老师在题库中勾选班级"
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="repoTitle" label="题库标题" align="center" />
-      <el-table-column prop="categoryName" label="题库分类" align="center">
+      <el-table-column min-width="120" prop="repoTitle" label="题库标题" align="center" />
+      <el-table-column min-width="110" prop="categoryName" label="题库分类" align="center">
         <template slot-scope="{ row }">
           <span v-if="row.parentCategoryName">{{ row.parentCategoryName }} / </span>
           <span>{{ row.categoryName || '未分类' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="totalCount" label="试题总数" align="center" />
+      <el-table-column min-width="80" prop="totalCount" label="试题总数" align="center" />
 
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
             type="success"
@@ -97,7 +102,9 @@
 <script>
 import { exercisePaging, getExerciseCategories } from '@/api/exercise'
 
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -123,15 +130,20 @@ export default {
     },
     // 分页查询
     async getExercisePage(pageNum, pageSize, title = null, categoryId = null) {
-      const params = { 
-        pageNum: pageNum, 
-        pageSize: pageSize, 
-        title: title,
-        categoryId: categoryId
-      }
-      const res = await exercisePaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = { 
+          pageNum: pageNum, 
+          pageSize: pageSize, 
+          title: title,
+          categoryId: categoryId
+        }
+        const res = await exercisePaging(params)
+        this.data = res.data
+
+      })
+
+      },
     // 获取学生有权限的分类列表
     async fetchCategories() {
       try {

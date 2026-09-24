@@ -1,25 +1,30 @@
 <template>
-  <div class="app-container">
-    <el-table
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column
+      <el-table-column class-name="datetime-col"
         prop="createTime"
         label="登录时间"
         align="center"
-        width="250px"
+        min-width="250"
       />
-      <el-table-column prop="place" label="登录地点" align="center" />
-      <el-table-column prop="device" label="登录设备" align="center" />
+      <el-table-column min-width="120" prop="place" label="登录地点" align="center" />
+      <el-table-column min-width="120" prop="device" label="登录设备" align="center" />
       <el-table-column prop="behavior" label="操作行为" align="center">
         <template slot-scope="{ row }">
           <span :style="{ color: getBehaviorColor(row.behavior) }">{{
@@ -46,7 +51,9 @@
 
 <script>
 import { getLogPage } from "@/api/log";
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       tableData: [
@@ -76,10 +83,15 @@ export default {
     },
     // 分页查询
     async getLogPageFun(pageNum, pageSize, title = null) {
-      const params = { pageNum: pageNum, pageSize: pageSize };
-      const res = await getLogPage(params);
-      this.data = res.data;
-    },
+
+      await this.withPageLoading(async () => {
+        const params = { pageNum: pageNum, pageSize: pageSize };
+        const res = await getLogPage(params);
+        this.data = res.data;
+
+      })
+
+      },
 
     handleSizeChange(val) {
       // 设置每页多少条逻辑

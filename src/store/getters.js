@@ -2,7 +2,7 @@ const getters = {
   sidebar: state => state.app.sidebar,
   device: state => state.app.device,
   token: state => state.user.token,
-  avatar: state => state.user.avatar,
+  avatar: state => (state.user.avatar == null ? '' : state.user.avatar),
   name: state => state.user.name,
   tags: state => state.menu.tags
 }

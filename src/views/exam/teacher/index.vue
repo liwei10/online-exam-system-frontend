@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="考试名称">
         <el-input v-model="input" />
@@ -29,29 +34,27 @@
       border
       fit
       highlight-current-row
+      class="exam-manage-table flex-list-table"
+      style="width: 100%"
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80px">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="试卷名称" align="center" min-width="140" />
-      <el-table-column prop="examDuration" label="考试时间" align="center" width="88" />
-      <el-table-column prop="maxCount" label="最多切屏次数" align="center" width="110" />
-      <el-table-column prop="grossScore" label="总分" align="center" width="70" />
-      <el-table-column prop="passedScore" label="及格分" align="center" width="70" />
-      <!-- <el-table-column prop="radioCount" label="单选题数量" align="center" width="100px" />
-      <el-table-column prop="multiCount" label="多选题数量" align="center" width="100px"/>
-      <el-table-column prop="judgeCount" label="判断题数量" align="center" width="100px" />
-      <el-table-column prop="saqCount" label="简答题数量" align="center" width="100px"/> -->
-      <el-table-column prop="startTime" label="开始时间" align="center" width="160" />
-      <el-table-column prop="endTime" label="结束时间" align="center" width="160" />
-      <el-table-column fixed="right" label="操作" align="center" width="200">
+      <el-table-column prop="title" label="试卷名称" align="center" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="examDuration" label="考试时间" align="center" min-width="80" />
+      <el-table-column prop="maxCount" label="切屏次数" align="center" min-width="80" />
+      <el-table-column prop="grossScore" label="总分" align="center" min-width="64" />
+      <el-table-column prop="passedScore" label="及格分" align="center" min-width="64" />
+      <el-table-column prop="startTime" label="开始时间" align="center" min-width="148" class-name="datetime-col" />
+      <el-table-column prop="endTime" label="结束时间" align="center" min-width="148" class-name="datetime-col" />
+      <el-table-column label="操作" align="center" min-width="168">
         <template slot-scope="{ row }">
           <div class="op-btns">
             <el-button
@@ -276,7 +279,9 @@
 
 <script>
 import { examPaging, examUpdate, examDel } from '@/api/exam'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -329,19 +334,23 @@ export default {
   },
   methods: {
     delExam(row) {
-      this.$confirm('此操作将永久删除该考试, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-        center: true
-      })
+      this.$confirm(
+        '删除后将同时清除该考试的作答、成绩、错题本与证书发放记录，且不可恢复。是否继续？',
+        '提示',
+        {
+          confirmButtonText: '确定删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+          center: true
+        }
+      )
         .then(() => {
           examDel(row.id).then((res) => {
             if (res.code) {
               this.getExamPage(this.pageNum, this.pageSize)
               this.$message({
                 type: 'success',
-                message: '删除成功!'
+                message: res.msg || '删除成功!'
               })
             } else {
               this.$message({
@@ -398,10 +407,15 @@ export default {
     },
     // 分页查询
     async getExamPage(pageNum, pageSize, title = null) {
-      const params = { pageNum: pageNum, pageSize: pageSize, title: title }
-      const res = await examPaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = { pageNum: pageNum, pageSize: pageSize, title: title }
+        const res = await examPaging(params)
+        this.data = res.data
+
+      })
+
+      },
     searchExam() {
       this.getExamPage(this.pageNum, this.pageSize, this.input)
     },
@@ -423,6 +437,10 @@ export default {
 }
 </script>
 <style>
+.exam-manage-table {
+  width: 100%;
+}
+
 .op-btns {
   white-space: nowrap;
 }
@@ -434,5 +452,9 @@ export default {
 
 .op-btns .el-button:first-child {
   margin-left: 0;
+}
+
+.datetime-col .cell {
+  white-space: nowrap;
 }
 </style>

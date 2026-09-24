@@ -1,5 +1,11 @@
 <template>
-  <div>
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="page-loading-host"
+  >
     <!-- kaitou -->
     <div class="exam-info-banner">
       <div class="exam-info-banner-text">
@@ -59,12 +65,20 @@
 
 <script>
 import { getExamDetail, examStart } from '@/api/exam'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       receivedRow: null,
       data: {
-        title: ''
+        title: '',
+        examDuration: 0,
+        grossScore: 0,
+        passedScore: 0,
+        username: '',
+        radioCount: 0,
+        radioScore: 0
       }
     }
   },
@@ -75,8 +89,10 @@ export default {
   methods: {
     // 分页查询
     async getExamDetils(examId) {
-      const res = await getExamDetail(examId)
-      this.data = res.data
+      await this.withPageLoading(async() => {
+        const res = await getExamDetail(examId)
+        this.data = res.data
+      })
     },
     startExam() {
       examStart(this.receivedRow).then((res) => {
@@ -124,7 +140,7 @@ export default {
   width: 98%;
   min-height: 400px;
   margin: 10px auto 0;
-  background-color: #f0f2f5;
+  background-color: #e8f2ef;
 }
 
 @media screen and (max-width: 991px) {

@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :mode="searchForm" class="demo-form-inline">
       <el-form-item label="讨论名称">
         <el-input v-model="searchForm.searchTitle" placeholder="讨论名称" />
@@ -14,27 +19,27 @@
         >
       </el-form-item>
     </el-form>
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="标题" align="center" />
-      <el-table-column prop="sender" label="创建人" align="center" />
-      <el-table-column prop="createTime" label="创建时间" align="center" />
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column show-overflow-tooltip min-width="160" prop="title" label="标题" align="center" />
+      <el-table-column min-width="100" prop="sender" label="创建人" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" label="创建时间" align="center" />
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -122,7 +127,9 @@
 import { discussionpageOwner,discussionpageStudent,discussionAdd,discussionDel } from "@/api/discussion";
 import ClassSelect from "@/components/ClassSelect";
 // import {getRole} from '@/utils/auth'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   components: {
     ClassSelect,
   },
@@ -217,23 +224,28 @@ export default {
     },
     // 分页查询
     async getDiscussionPage(pageNum, pageSize, title = null, gradeId = null) {
-      const params = {
-        currentPage: pageNum,
-        size: pageSize,
-        title: title,
-        gradeId: gradeId,
-      };
-      //教师分页获取讨论
-      if(this.currentRole === 'teacher'){
-        const res = await discussionpageOwner(params)
-        this.data = res.data
-      }else if(this.currentRole === 'student'){
-        //学生分页获取讨论
-        delete params.gradeId
-        const res = await discussionpageStudent(params)
-        this.data = res.data
-      }
-    },
+
+      await this.withPageLoading(async () => {
+        const params = {
+          currentPage: pageNum,
+          size: pageSize,
+          title: title,
+          gradeId: gradeId,
+        };
+        //教师分页获取讨论
+        if(this.currentRole === 'teacher'){
+          const res = await discussionpageOwner(params)
+          this.data = res.data
+        }else if(this.currentRole === 'student'){
+          //学生分页获取讨论
+          delete params.gradeId
+          const res = await discussionpageStudent(params)
+          this.data = res.data
+        }
+
+      })
+
+      },
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val;

@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-page" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exam-page" style="width: 100%; height: 100%; background-color: #e8f2ef; padding: 20px 0 0">
     <!-- Header区域 -->
     <el-row :gutter="24">
       <el-col :span="24">
@@ -725,7 +725,7 @@ export default {
     fetchQuData(item) {
       // 打开
       const loading = Loading.service({
-        text: '拼命加载中',
+        text: '正在查询请等待',
         background: 'rgba(0, 0, 0, 0.7)'
       })
 
@@ -836,7 +836,7 @@ export default {
 
 <style scoped>
 page {
-  background: #ebecee;
+  background: #e8f2ef;
 }
 
 /* 题目内容样式 - 支持换行显示 */
@@ -899,7 +899,7 @@ page {
 }
 
 .is-checked {
-  border: #409eff 1px solid;
+  border: #0f766e 1px solid;
 }
 
 .el-radio img,
@@ -929,7 +929,7 @@ page {
 .content {
   width: 97%;
   height: 60px;
-  border: 1px solid #0a84ff;
+  border: 1px solid #0f766e;
   margin-top: 8px;
   margin-left: 10px;
   padding: 10px;
@@ -1021,7 +1021,7 @@ page {
         /* // 选项标签 */
         .qu_choose_tag_type {
           font-weight: bold;
-          /* // color: #0a84ff; */
+          /* // color: #0f766e; */
           width: 10px;
         }
         /* // 选项内容 */

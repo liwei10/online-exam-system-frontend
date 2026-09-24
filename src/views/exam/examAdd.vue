@@ -24,9 +24,10 @@
             :data="repoList"
             :border="false"
             empty-text="请点击上面的`添加题库`进行设置"
+            class="random-repo-table"
             style="width: 100%; margin-top: 15px"
           >
-            <el-table-column label="题库" width="200">
+            <el-table-column label="题库" min-width="180">
               <template v-slot="scope">
                 <repo-select
                   v-model="scope.row.repoId"
@@ -36,105 +37,113 @@
                 />
               </template>
             </el-table-column>
-            <el-table-column label="单选数量" align="center">
+            <el-table-column label="单选数量" align="center" min-width="130">
               <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.radioCount"
-                  :min="0"
-                  :max="scope.row.totalRadio"
-                  :controls="false"
-                  style="width: 80px"
-                />
-                <template v-if="scope.row.totalRadio != undefined">
-                  / {{ scope.row.totalRadio }}
-                </template>
+                <div class="count-cell">
+                  <el-input-number
+                    v-model="scope.row.radioCount"
+                    :min="0"
+                    :max="scope.row.totalRadio"
+                    :controls="false"
+                    class="count-input"
+                  />
+                  <span v-if="scope.row.totalRadio != undefined" class="count-total">
+                    / {{ scope.row.totalRadio }}
+                  </span>
+                </div>
               </template>
             </el-table-column>
 
-            <el-table-column label="单选分数" align="center">
+            <el-table-column label="单选分数" align="center" min-width="100">
               <template v-slot="scope">
                 <el-input-number
                   v-model="scope.row.radioScore"
                   :min="0"
                   :controls="false"
-                  style="width: 80px"
+                  class="score-input"
                 />
               </template>
             </el-table-column>
 
-            <el-table-column label="多选数量" align="center">
+            <el-table-column label="多选数量" align="center" min-width="130">
               <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.multiCount"
-                  :min="0"
-                  :max="scope.row.totalMulti"
-                  :controls="false"
-                  style="width: 80px"
-                />
-                <template v-if="scope.row.totalMulti != undefined">
-                  / {{ scope.row.totalMulti }}
-                </template>
+                <div class="count-cell">
+                  <el-input-number
+                    v-model="scope.row.multiCount"
+                    :min="0"
+                    :max="scope.row.totalMulti"
+                    :controls="false"
+                    class="count-input"
+                  />
+                  <span v-if="scope.row.totalMulti != undefined" class="count-total">
+                    / {{ scope.row.totalMulti }}
+                  </span>
+                </div>
               </template>
             </el-table-column>
 
-            <el-table-column label="多选分数" align="center">
+            <el-table-column label="多选分数" align="center" min-width="100">
               <template v-slot="scope">
                 <el-input-number
                   v-model="scope.row.multiScore"
                   :min="0"
                   :controls="false"
-                  style="width: 80px"
+                  class="score-input"
                 />
               </template>
             </el-table-column>
 
-            <el-table-column label="判断题数量" align="center">
+            <el-table-column label="判断题数量" align="center" min-width="130">
               <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.judgeCount"
-                  :min="0"
-                  :max="scope.row.totalJudge"
-                  :controls="false"
-                  style="width: 80px"
-                />
-                <template v-if="scope.row.totalJudge != undefined">
-                  / {{ scope.row.totalJudge }}
-                </template>
+                <div class="count-cell">
+                  <el-input-number
+                    v-model="scope.row.judgeCount"
+                    :min="0"
+                    :max="scope.row.totalJudge"
+                    :controls="false"
+                    class="count-input"
+                  />
+                  <span v-if="scope.row.totalJudge != undefined" class="count-total">
+                    / {{ scope.row.totalJudge }}
+                  </span>
+                </div>
               </template>
             </el-table-column>
 
-            <el-table-column label="判断题分数" align="center">
+            <el-table-column label="判断题分数" align="center" min-width="100">
               <template v-slot="scope">
                 <el-input-number
                   v-model="scope.row.judgeScore"
                   :min="0"
                   :controls="false"
-                  style="width: 80px"
+                  class="score-input"
                 />
               </template>
             </el-table-column>
-            <el-table-column label="简答题数量" align="center">
+            <el-table-column label="简答题数量" align="center" min-width="130">
               <template v-slot="scope">
-                <el-input-number
-                  v-model="scope.row.saqCount"
-                  :min="0"
-                  :max="scope.row.totalSaq"
-                  :controls="false"
-                  style="width: 80px"
-                />
-                <template v-if="scope.row.totalSaq != undefined">
-                  / {{ scope.row.totalSaq }}
-                </template>
+                <div class="count-cell">
+                  <el-input-number
+                    v-model="scope.row.saqCount"
+                    :min="0"
+                    :max="scope.row.totalSaq"
+                    :controls="false"
+                    class="count-input"
+                  />
+                  <span v-if="scope.row.totalSaq != undefined" class="count-total">
+                    / {{ scope.row.totalSaq }}
+                  </span>
+                </div>
               </template>
             </el-table-column>
 
-            <el-table-column label="简答题分数" align="center">
+            <el-table-column label="简答题分数" align="center" min-width="100">
               <template v-slot="scope">
                 <el-input-number
                   v-model="scope.row.saqScore"
                   :min="0"
                   :controls="false"
-                  style="width: 80px"
+                  class="score-input"
                 />
               </template>
             </el-table-column>
@@ -656,5 +665,25 @@ export default {
 .exam-form-page .form-card {
   margin-top: 4px;
   border-radius: 16px;
+}
+
+.random-repo-table .count-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 4px;
+}
+
+.random-repo-table .count-input,
+.random-repo-table .score-input {
+  width: 72px;
+}
+
+.random-repo-table .count-total {
+  flex-shrink: 0;
+  color: #909399;
+  white-space: nowrap;
 }
 </style>

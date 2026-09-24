@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="loading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host"
+  >
     <!-- 数据卡片区域 -->
     <div class="stats-container">
       <div class="stats-row">

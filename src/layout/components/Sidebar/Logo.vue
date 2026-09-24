@@ -48,7 +48,7 @@ export default {
   text-align: left;
   overflow: hidden;
   padding: 0 14px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid rgba(167, 243, 208, 0.18);
 
   & .sidebar-logo-link {
     height: 100%;
@@ -65,18 +65,20 @@ export default {
       align-items: center;
       justify-content: center;
       margin-right: 10px;
+      font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
       font-size: 15px;
       font-weight: 700;
       color: #042f2e;
-      background: linear-gradient(135deg, #5eead4, #14b8a6);
-      box-shadow: 0 6px 14px rgba(20, 184, 166, 0.35);
+      background: linear-gradient(135deg, #a7f3d0, #5eead4);
+      box-shadow: 0 6px 14px rgba(110, 231, 183, 0.35);
     }
 
     & .sidebar-title {
       display: inline-block;
       margin: 0;
-      color: #f8fafc;
-      font-weight: 600;
+      color: #ecfdf8;
+      font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+      font-weight: 700;
       line-height: 1.2;
       font-size: 14px;
       letter-spacing: 0.02em;

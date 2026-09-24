@@ -370,7 +370,7 @@ export const constantRoutes = [
       name: 'marking-management',
       component: () => import('@/views/answer/index'),
       // , 'admin'
-      meta: { title: '阅卷管理', visible: true, roles: ['teacher'], icon: 'el-icon-files' }
+      meta: { title: '阅卷管理', visible: true, roles: ['teacher', 'admin'], icon: 'el-icon-files' }
     }]
   },
   {

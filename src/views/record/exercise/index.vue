@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host"
+  >
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="题库名称">
         <el-input v-model="searchTitle" placeholder="题库名称" />
@@ -9,27 +15,27 @@
         <el-button type="primary" @click="searchExam">查询</el-button>
       </el-form-item>
     </el-form>
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" align="center" label="题库名称" />
-      <el-table-column prop="createTime" align="center" label="刷题时间" />
+      <el-table-column show-overflow-tooltip min-width="160" prop="title" align="center" label="题库名称" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" align="center" label="刷题时间" />
       <!-- <el-table-column prop="cjsj" align="center" label="已刷题数"> </el-table-column> -->
-      <el-table-column align="center" label="操作">
+      <el-table-column min-width="140" align="center" label="操作">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -107,7 +113,9 @@
 
 <script>
 import { recordExercisePaging } from '@/api/record'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -165,9 +173,11 @@ export default {
     },
     // 分页查询
     async getExerciseRecordPaging(pageNum, pageSize, repoName) {
-      const params = { pageNum: pageNum, pageSize: pageSize, repoName: repoName }
-      const res = await recordExercisePaging(params)
-      this.data = res.data
+      await this.withPageLoading(async() => {
+        const params = { pageNum: pageNum, pageSize: pageSize, repoName: repoName }
+        const res = await recordExercisePaging(params)
+        this.data = res.data
+      })
     },
     onSubmit() {
       //  ("submit!");

@@ -1,5 +1,12 @@
 <template>
-  <div class="subPageMain" style="background: none">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="subPageMain page-loading-host"
+    style="background: none"
+  >
     <div class="noticeDetail_detail">
       <div class="noticeDetail_head">
       <div>{{ data.title==""||data.title==null?"暂无标题":data.title }}</div>
@@ -79,7 +86,9 @@ import {getUserId,getDiscussionId,setDiscussionId} from '@/utils/auth'
 import { getTokenInfo, getRole } from '@/utils/jwtUtils'
 import { EventBus } from '@/utils/websocket'
 import { replyAdd,replyDel } from '@/api/reply'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   components: {
     Discussion,
     quillEditor,
@@ -206,18 +215,17 @@ export default {
 
     },
     getDiscussionDetailsFun() {
-      discussionDetail(this.currentDiscussionId).then((res) => {
-        this.form.content = res.data.answer;
-        this.data = res.data;
-        console.log(res.data);
-        this.getDiscussionRelyFun(this.currentDiscussionId,1)
-      });
+      this.withPageLoading(async() => {
+        const res = await discussionDetail(this.currentDiscussionId)
+        this.form.content = res.data.answer
+        this.data = res.data
+        await this.getDiscussionRelyFun(this.currentDiscussionId, 1)
+      })
     },
-    getDiscussionRelyFun(id,order=1){
-      getDiscussionRely(id,order).then((res)=>{
+    getDiscussionRelyFun(id, order = 1) {
+      return getDiscussionRely(id, order).then((res) => {
         this.relyData = res.data
-
-      });
+      })
     },
     // 失去焦点事件
     onEditorBlur(quill) {},

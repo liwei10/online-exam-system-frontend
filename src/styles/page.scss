@@ -25,26 +25,26 @@
     }
 
     .el-form-item__label {
-      color: #64748b;
+      color: vars.$textSecondary;
       font-weight: 500;
       padding-right: 8px;
     }
 
     .el-input__inner,
     .el-select .el-input__inner {
-      border-color: #e2e8f0;
-      background: #f8fafc;
+      border-color: vars.$borderColor;
+      background: vars.$fieldBg;
       transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 
       &:hover {
-        border-color: #99f6e4;
+        border-color: #99d5c8;
         background: #fff;
       }
 
       &:focus {
         border-color: vars.$primary;
         background: #fff;
-        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
       }
     }
 
@@ -53,7 +53,7 @@
     }
 
     .el-button--primary {
-      box-shadow: 0 6px 14px rgba(13, 148, 136, 0.18);
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.2);
     }
 
     .el-button--primary.is-plain {
@@ -62,14 +62,14 @@
 
     .el-button--default.is-plain,
     .el-button.is-plain:not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger) {
-      color: #475569;
+      color: #3d524e;
       background: #fff;
-      border-color: #e2e8f0;
+      border-color: vars.$borderColor;
 
       &:hover,
       &:focus {
         color: vars.$primary;
-        border-color: #99f6e4;
+        border-color: #99d5c8;
         background: #f0fdfa;
       }
     }
@@ -93,6 +93,24 @@
     }
   }
 
+  /* 列表弹性列：日期不折行，操作按钮不换行 */
+  .datetime-col .cell {
+    white-space: nowrap;
+  }
+
+  .op-btns {
+    white-space: nowrap;
+  }
+
+  .op-btns .el-button {
+    margin-left: 4px;
+    padding: 0 2px;
+  }
+
+  .op-btns .el-button:first-child {
+    margin-left: 0;
+  }
+
   > .el-pagination,
   > .pagination-container {
     margin-top: 12px;
@@ -109,7 +127,7 @@
     border-radius: 6px;
 
     &:hover {
-      background: rgba(13, 148, 136, 0.08);
+      background: rgba(15, 118, 110, 0.08);
     }
 
     &[style*="red"],
@@ -150,15 +168,15 @@
   th.el-table__cell,
   th.is-leaf,
   .el-table__header-wrapper th {
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
-    color: #475569 !important;
+    background: linear-gradient(180deg, #f7fbfa 0%, #eef6f3 100%) !important;
+    color: #3d524e !important;
     font-weight: 600 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid vars.$borderColor !important;
   }
 
   td {
-    border-bottom: 1px solid #f1f5f9 !important;
-    color: #334155;
+    border-bottom: 1px solid #eaf2ef !important;
+    color: #2a3d3a;
     padding: 10px 0;
   }
 
@@ -177,7 +195,7 @@
   }
 
   &.el-table--striped .el-table__body tr.el-table__row--striped td {
-    background: #f8fafc;
+    background: #f7fbfa;
   }
 }
 
@@ -229,12 +247,12 @@
 
 .app-breadcrumb.el-breadcrumb {
   .no-redirect {
-    color: #0f172a;
+    color: vars.$textPrimary;
     font-weight: 600;
   }
 
   a {
-    color: #94a3b8;
+    color: vars.$textSecondary;
     font-weight: 500;
 
     &:hover {
@@ -250,7 +268,7 @@
   & + .form-section {
     margin-top: 20px;
     padding-top: 8px;
-    border-top: 1px dashed #e2e8f0;
+    border-top: 1px dashed vars.$borderColor;
   }
 }
 
@@ -260,7 +278,7 @@
   margin: 0 0 16px;
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: vars.$textPrimary;
   letter-spacing: 0.02em;
 
   &::before {
@@ -269,7 +287,7 @@
     height: 16px;
     margin-right: 10px;
     border-radius: 2px;
-    background: linear-gradient(180deg, #2dd4bf, #0d9488);
+    background: linear-gradient(180deg, #5eead4, #0f766e);
     flex-shrink: 0;
   }
 }
@@ -277,7 +295,7 @@
 .form-section-desc {
   margin: -8px 0 14px 14px;
   font-size: 12px;
-  color: #94a3b8;
+  color: vars.$textSecondary;
   line-height: 1.5;
 }
 
@@ -287,7 +305,7 @@
   margin: 0 0 16px;
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: vars.$textPrimary;
 
   &::before {
     content: '';
@@ -295,6 +313,6 @@
     height: 18px;
     margin-right: 10px;
     border-radius: 2px;
-    background: linear-gradient(180deg, #2dd4bf, #0d9488);
+    background: linear-gradient(180deg, #5eead4, #0f766e);
   }
 }

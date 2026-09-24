@@ -1,5 +1,5 @@
 <template>
-  <div class="exam-page" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exam-page" style="width: 100%; height: 100%; background-color: #e8f2ef; padding: 20px 0 0">
     <!-- 开头 -->
     <el-row :gutter="24">
       <el-col :span="24">
@@ -619,7 +619,7 @@ export default {
     async getCurrentQuDetial() {
       this.isAnswered = false
       const loading = Loading.service({
-        text: '拼命加载中',
+        text: '正在查询请等待',
         background: 'rgba(0, 0, 0, 0.7)'
       })
       if (this.number === 0) {
@@ -676,7 +676,7 @@ export default {
       // alert(this.nextText)
       // alert(this.rightQuAnswer);
       const loading = Loading.service({
-        text: '拼命加载中',
+        text: '正在查询请等待',
         background: 'rgba(0, 0, 0, 0.7)'
       })
 
@@ -704,7 +704,7 @@ export default {
     },
     async handNext() {
       const loading = Loading.service({
-        text: '拼命加载中',
+        text: '正在查询请等待',
         background: 'rgba(0, 0, 0, 0.7)'
       })
       try {
@@ -780,7 +780,7 @@ export default {
     },
     async handPrevious() {
       const loading = Loading.service({
-        text: '拼命加载中',
+        text: '正在查询请等待',
         background: 'rgba(0, 0, 0, 0.7)'
       })
       this.resetAnswerState()
@@ -858,7 +858,7 @@ export default {
 
 <style scoped>
 page {
-  background: #ebecee;
+  background: #e8f2ef;
 }
 
 /* 题目内容样式 - 支持换行显示 */
@@ -939,7 +939,7 @@ page {
 }
 
 .is-checked {
-  border: #409eff 1px solid;
+  border: #0f766e 1px solid;
 }
 
 .el-radio img,
@@ -994,7 +994,7 @@ page {
 .stat-number {
   font-size: 24px;
   font-weight: bold;
-  color: #409eff;
+  color: #0f766e;
 }
 .stat-label {
   font-size: 14px;
@@ -1012,8 +1012,8 @@ page {
 }
 
 .single-choice {
-  background-color: #e6f7ff;
-  color: #1890ff;
+  background-color: #f0fdfa;
+  color: #0f766e;
   border: 1px solid #91d5ff;
 }
 

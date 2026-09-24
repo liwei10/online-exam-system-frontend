@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host"
+  >
     <el-form :inline="true" :model="formInline">
       <el-form-item label="试卷名称：      ">
         <el-input v-model="searchTitle" />
@@ -14,41 +20,41 @@
         v-model="isASC"
         active-text="升序"
         inactive-text="降序"
-        active-color="#13ce66"
-        inactive-color="#409EFF"
+        active-color="#0f766e"
+        inactive-color="#c5d5d0"
         @change="toggleSort"
       />
     </div>
 
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="试卷名称" align="center" />
-      <el-table-column prop="examDuration" label="考试时长（分钟）" align="center" />
-      <el-table-column prop="grossScore" label="总分" align="center" />
-      <el-table-column prop="passedScore" label="及格分" align="center" />
-      <!-- <el-table-column prop="radioCount" label="单选题数量" align="center" width="100"  />
-      <el-table-column prop="multiCount" label="多选题数量" align="center" width="100" />
-      <el-table-column prop="judgeCount" label="判断题数量" align="center" width="100" />
-      <el-table-column prop="saqCount" label="简答题数量" align="center" width="100" /> -->
-      <el-table-column prop="startTime" label="开始时间" align="center" />
-      <el-table-column prop="endTime" label="结束时间" align="center" />
-      <!-- <el-table-column prop="createTime" label="创建时间" align="center" /> -->
-      <el-table-column fixed="right" label="操作" align="center" width="120">
+      <el-table-column show-overflow-tooltip min-width="160" prop="title" label="试卷名称" align="center" />
+      <el-table-column min-width="90" prop="examDuration" label="考试时长（分钟）" align="center" />
+      <el-table-column min-width="64" prop="grossScore" label="总分" align="center" />
+      <el-table-column min-width="64" prop="passedScore" label="及格分" align="center" />
+      <!-- <el-table-column prop="radioCount" label="单选题数量" align="center" min-width="100"  />
+      <el-table-column prop="multiCount" label="多选题数量" align="center" min-width="100" />
+      <el-table-column prop="judgeCount" label="判断题数量" align="center" min-width="100" />
+      <el-table-column prop="saqCount" label="简答题数量" align="center" min-width="100" /> -->
+      <el-table-column min-width="148" class-name="datetime-col" prop="startTime" label="开始时间" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="endTime" label="结束时间" align="center" />
+      <!-- <el-table-column min-width="148" class-name="datetime-col" prop="createTime" label="创建时间" align="center" /> -->
+      <el-table-column label="操作" align="center" min-width="120">
         <template slot-scope="{ row }">
           <el-button
             :type="getExamStatus(row).type"
@@ -96,7 +102,9 @@
 
 <script>
 import { getGradeExamList } from '@/api/exam'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -129,9 +137,11 @@ export default {
   methods: {
     // 分页查询
     async getExamGradePage(pageNum, pageSize, searchTitle = null) {
-      const params = { pageNum: pageNum, pageSize: pageSize, title: searchTitle, isASC: this.isASC }
-      const res = await getGradeExamList(params)
-      this.data = res.data
+      await this.withPageLoading(async() => {
+        const params = { pageNum: pageNum, pageSize: pageSize, title: searchTitle, isASC: this.isASC }
+        const res = await getGradeExamList(params)
+        this.data = res.data
+      })
     },
 
     // 切换排序方式

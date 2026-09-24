@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="真实姓名">
         <el-input v-model="realName" placeholder="真实姓名" />
@@ -14,30 +19,30 @@
     </el-form>
 
     <!-- table -->
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="试卷名称" align="center" />
-      <el-table-column prop="realName" label="真实姓名" align="center" />
-      <el-table-column prop="userScore" label="用户得分" align="center" />
-      <el-table-column prop="count" label="切屏次数" align="center" />
-      <el-table-column prop="userTime" label="用户用时" align="center" />
-      <el-table-column prop="limitTime" label="提交时间" align="center" />
+      <el-table-column show-overflow-tooltip min-width="160" prop="title" label="试卷名称" align="center" />
+      <el-table-column min-width="120" prop="realName" label="真实姓名" align="center" />
+      <el-table-column min-width="80" prop="userScore" label="用户得分" align="center" />
+      <el-table-column min-width="72" prop="count" label="切屏次数" align="center" />
+      <el-table-column min-width="90" prop="userTime" label="用户用时" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="limitTime" label="提交时间" align="center" />
       
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -65,7 +70,9 @@
 
 <script>
 import { scorePaging, exportScores } from '@/api/score'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -139,16 +146,21 @@ export default {
       },
     // 分页查询
     async getScorePage() {
-      const params = {
-        pageNum: this.pageNum,
-        pageSize: this.pageSize,
-        examId: this.examId,
-        gradeId: this.gradeId,
-        realName: this.realName
-      }
-      const res = await scorePaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = {
+          pageNum: this.pageNum,
+          pageSize: this.pageSize,
+          examId: this.examId,
+          gradeId: this.gradeId,
+          realName: this.realName
+        }
+        const res = await scorePaging(params)
+        this.data = res.data
+
+      })
+
+      },
     getExportScores() {
       exportScores(this.examId, this.gradeId).then(res => {
         (res) // 控制台输出：Blob {size: 30208, type: 'application/x-msdownload'}

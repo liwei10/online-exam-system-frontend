@@ -1,6 +1,11 @@
 
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="证书名称">
         <el-input v-model="searchCertificateName" placeholder="证书名称" />
@@ -16,28 +21,28 @@
 
     <!-- table -->
 
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="certificateName" label="证书名称" align="center" />
-      <el-table-column prop="certificationNuit" label="认证单位" align="center" />
+      <el-table-column show-overflow-tooltip min-width="160" prop="certificateName" label="证书名称" align="center" />
+      <el-table-column min-width="120" prop="certificationNuit" label="认证单位" align="center" />
 
-      <el-table-column prop="createTime" label="创建时间" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" label="创建时间" align="center" />
 
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -115,7 +120,9 @@ import {
   certificateAdd,
   certificateUpdate
 } from '@/api/certificate'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -190,15 +197,20 @@ export default {
       certificateName = null,
       searchCertificationNuit = null
     ) {
-      const params = {
-        pageNum: pageNum,
-        pageSize: pageSize,
-        certificateName: certificateName,
-        certificationUnit: searchCertificationNuit
-      }
-      const res = await certificatePaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = {
+          pageNum: pageNum,
+          pageSize: pageSize,
+          certificateName: certificateName,
+          certificationUnit: searchCertificationNuit
+        }
+        const res = await certificatePaging(params)
+        this.data = res.data
+
+      })
+
+      },
     searchCertificate() {
       this.getCertificatePage(
         this.pageNum,

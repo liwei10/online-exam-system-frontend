@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <!-- 筛选栏 -->
     <el-form :inline="true" v-model="searchForm" class="demo-form-inline">
       <el-form-item label="真实姓名">
@@ -14,21 +19,21 @@
         <el-button plain @click="fileDialogVisible = true">导入</el-button>
       </el-form-item>
     </el-form>
-    <el-table :data="data.records" border fit highlight-current-row :header-cell-style="{
-      background: '#f2f3f4',
+    <el-table class="flex-list-table" :data="data.records" border fit highlight-current-row :header-cell-style="{
+      background: '#eef6f3',
       color: '#555',
       'font-weight': 'bold',
       'line-height': '32px',
     }">
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column label="序号" align="center" width="80px">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">
           {{ scope.$index + 1 }}
         </template>
       </el-table-column>
-      <el-table-column prop="userName" label="用户名" align="center" />
-      <el-table-column prop="realName" label="真实姓名" align="center" />
-      <el-table-column prop="roleId" label="角色名称" align="center" width="110">
+      <el-table-column min-width="120" prop="userName" label="用户名" align="center" />
+      <el-table-column min-width="120" prop="realName" label="真实姓名" align="center" />
+      <el-table-column prop="roleId" label="角色名称" align="center" min-width="110">
         <template slot-scope="{ row }">
           <span class="role-tag" :class="'role-' + row.roleId">{{ roleLabel(row.roleId) }}</span>
         </template>
@@ -47,8 +52,8 @@
           <span v-else>{{ row.gradeName || '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="注册时间" align="center" />
-      <el-table-column align="center" label="操作" width="140">
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" label="注册时间" align="center" />
+      <el-table-column align="center" label="操作" min-width="140">
         <template slot-scope="{ row }">
           <el-button v-if="(role == 'teacher' && row.roleId == 1) || (role == 'admin' && row.roleId != 3)" type="text" size="small" style="font-size: 14px"
             @click="openEditUser(row)">编辑</el-button>
@@ -85,13 +90,21 @@
             </el-form-item>
           </el-col>
           <el-col :span="11">
-            <el-form-item v-if="role == 'teacher' || (role == 'admin' && addForm.roleId == '1')" label="班级选择" :label-width="formLabelWidth">
+            <el-form-item v-if="role == 'teacher' || (role == 'admin' && (addForm.roleId == '1' || addForm.roleId == '2'))" label="班级选择" :label-width="formLabelWidth">
               <ClassSelect v-model="addForm.gradeIds" is-multiple />
             </el-form-item>
           </el-col>
         </el-row>
         <el-alert
           title="新增用户无需填写密码，系统默认初始密码为 123456"
+          type="info"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 8px"
+        />
+        <el-alert
+          v-if="role == 'admin' && addForm.roleId == '2'"
+          title="可为教师指定多个班级，也可稍后在班级管理中由教师自行加入"
           type="info"
           :closable="false"
           show-icon
@@ -128,7 +141,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row v-if="editForm.roleId == '1'">
+        <el-row v-if="editForm.roleId == '1' || editForm.roleId == '2'">
           <el-col :span="22">
             <el-form-item label="班级选择" :label-width="formLabelWidth">
               <ClassSelect v-model="editForm.gradeIds" is-multiple @change="onEditGradesChange" />
@@ -136,7 +149,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row v-if="editForm.roleId == '1'">
+        <el-row v-if="editForm.roleId == '1' || editForm.roleId == '2'">
           <el-col :span="22">
             <el-form-item label="已加入班级" :label-width="formLabelWidth">
               <div v-if="!(editForm.grades && editForm.grades.length)" class="grade-empty">暂未加入班级</div>
@@ -202,7 +215,9 @@
 import ClassSelect from '@/components/ClassSelect'
 import { userPaging, classAdd, userDel, userImport, userUpdate } from '@/api/user'
 import { userClassRemove } from '@/api/class_'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   components: { ClassSelect },
   data() {
     return {
@@ -259,15 +274,20 @@ export default {
     },
     // 分页查询用户
     async getUserPage(pageNum, pageSize, realName = null, gradeId = null) {
-      const params = {
-        pageNum: pageNum,
-        pageSize: pageSize,
-        realName: realName,
-        gradeId: gradeId
-      }
-      const res = await userPaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = {
+          pageNum: pageNum,
+          pageSize: pageSize,
+          realName: realName,
+          gradeId: gradeId
+        }
+        const res = await userPaging(params)
+        this.data = res.data
+
+      })
+
+      },
     // 搜索功能用户
     searchUser() {
       this.getUserPage(

@@ -8,7 +8,12 @@
 -->
 
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
 
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="考试名称">
@@ -20,27 +25,27 @@
       </el-form-item>
     </el-form>
 
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="examTitle" label="考试名称" align="center" />
-      <el-table-column prop="classSize" label="总人数" align="center" />
-      <el-table-column prop="numberOfApplicants" label="实际参考人数" align="center" />
-      <el-table-column prop="correctedPaper" label="已阅卷人数" align="center" />
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column show-overflow-tooltip min-width="160" prop="examTitle" label="考试名称" align="center" />
+      <el-table-column min-width="72" prop="classSize" label="总人数" align="center" />
+      <el-table-column min-width="100" prop="numberOfApplicants" label="实际参考人数" align="center" />
+      <el-table-column min-width="100" prop="correctedPaper" label="已阅卷人数" align="center" />
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -117,7 +122,9 @@
 </template>
 <script>
 import { answerExamPging } from '@/api/answer'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -144,12 +151,17 @@ export default {
     searchExam() {
       this.getAnswerPage(this.pageNum, this.pageSize, this.searchTitle)
     },
-    getAnswerPage(pageNum, pageSize, examName) {
-      const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
-      answerExamPging(params).then((res) => {
-        this.data = res.data
+    async getAnswerPage(pageNum, pageSize, examName) {
+
+      await this.withPageLoading(async () => {
+        const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
+        answerExamPging(params).then((res) => {
+          this.data = res.data
+        })
+
       })
-    },
+
+      },
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val

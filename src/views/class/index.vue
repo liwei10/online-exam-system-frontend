@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <!-- form -->
 
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
@@ -21,29 +26,44 @@
 
     <!-- table -->
 
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column label="序号" align="center" width="80px">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">
           {{ scope.$index + 1 }}
         </template>
       </el-table-column>
-      <el-table-column prop="gradeName" label="班级名称" align="center" />
-      <el-table-column prop="gradeCount" label="班级人数" align="center" />
-      <el-table-column prop="code" label="班级口令" align="center" />
-      <el-table-column prop="userName" label="创建用户" align="center" />
-      <el-table-column align="center" label="操作">
+      <el-table-column prop="gradeName" label="班级名称" align="center" min-width="120" />
+      <el-table-column prop="gradeCount" label="班级人数" align="center" min-width="100" />
+      <el-table-column label="关联教师" align="center" min-width="180">
+        <template slot-scope="{ row }">
+          <template v-if="row.teachers && row.teachers.length">
+            <el-tag
+              v-for="t in row.teachers"
+              :key="t.id"
+              size="mini"
+              effect="plain"
+              type="info"
+              style="margin: 2px"
+            >{{ t.realName || t.userName }}</el-tag>
+          </template>
+          <span v-else class="empty-text">暂无</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="code" label="班级口令" align="center" min-width="140" />
+      <el-table-column prop="userName" label="创建用户" align="center" min-width="110" />
+      <el-table-column align="center" label="操作" min-width="140">
         <template slot-scope="{ row }">
           <!-- 管理员按钮 -->
           <el-button
@@ -118,16 +138,36 @@
     </el-dialog>
 
     <!--编辑弹窗-->
-    <el-dialog title="编辑" :visible.sync="dialogFormVisible">
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form :model="form">
-            <el-form-item label="班级名称" :label-width="formLabelWidth">
-              <el-input v-model="form.gradeName" autocomplete="off" />
-            </el-form-item>
-          </el-form>
-        </el-col>
-      </el-row>
+    <el-dialog title="编辑班级" :visible.sync="dialogFormVisible" width="560px" @closed="onEditClosed">
+      <el-form :model="form" label-width="90px">
+        <el-form-item label="班级名称">
+          <el-input v-model="form.gradeName" autocomplete="off" maxlength="50" />
+        </el-form-item>
+        <el-form-item label="关联教师">
+          <div v-if="!(form.teachers && form.teachers.length)" class="teacher-empty">
+            暂无关联教师
+          </div>
+          <div v-else class="teacher-list">
+            <div
+              v-for="t in form.teachers"
+              :key="t.id"
+              class="teacher-item"
+            >
+              <div class="teacher-meta">
+                <span class="teacher-name">{{ t.realName || t.userName }}</span>
+                <span class="teacher-username">{{ t.userName }}</span>
+              </div>
+              <el-button
+                type="text"
+                size="small"
+                class="unbind-btn"
+                :loading="unbindingId === t.id"
+                @click="unbindTeacher(t)"
+              >解除关联</el-button>
+            </div>
+          </div>
+        </el-form-item>
+      </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="updateClass">确 定</el-button>
@@ -137,9 +177,11 @@
 </template>
 
 <script>
-import { teacherJoinClass, teacherExitClass, classPaging, classDel, classUpdate, classAdd } from '@/api/class_'
+import { teacherJoinClass, teacherExitClass, classPaging, classDel, classUpdate, classAdd, removeTeacherFromGrade } from '@/api/class_'
 import { getRole } from '@/utils/jwtUtils'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       teacharForm: {
@@ -153,6 +195,7 @@ export default {
       joinClassVisible: false,
       dialogTableVisible: false,
       dialogFormVisible: false,
+      unbindingId: null,
       addForm: {
         gradeName: ''
       },
@@ -160,7 +203,9 @@ export default {
         searchTitle: ''
       },
       form: {
-        gradeName: ''
+        id: null,
+        gradeName: '',
+        teachers: []
       },
       formLabelWidth: '110px'
     }
@@ -196,7 +241,7 @@ export default {
           this.getClassPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
           this.$message({
             type: 'success',
-            message: '加入成功!'
+            message: '退出成功!'
           })
         } else {
           this.$message({
@@ -208,9 +253,11 @@ export default {
     },
     // 分页查询
     async getClassPage(pageNum, pageSize, title = null) {
-      const params = { pageNum: pageNum, pageSize: pageSize, gradeName: title }
-      const res = await classPaging(params)
-      this.data = res.data
+      await this.withPageLoading(async() => {
+        const params = { pageNum: pageNum, pageSize: pageSize, gradeName: title }
+        const res = await classPaging(params)
+        this.data = res.data
+      })
     },
     addClass() {
       const data = { gradeName: this.addForm.gradeName }
@@ -286,8 +333,42 @@ export default {
         })
     },
     updateRow(row) {
+      this.form = {
+        id: row.id,
+        gradeName: row.gradeName,
+        teachers: Array.isArray(row.teachers) ? row.teachers.map((t) => ({ ...t })) : []
+      }
       this.dialogFormVisible = true
-      this.form = row
+    },
+    onEditClosed() {
+      this.unbindingId = null
+      this.form = { id: null, gradeName: '', teachers: [] }
+    },
+    unbindTeacher(teacher) {
+      const name = (teacher && (teacher.realName || teacher.userName)) || '该教师'
+      this.$confirm(`确定解除「${name}」与本班级的关联吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.unbindingId = teacher.id
+        removeTeacherFromGrade(this.form.id, teacher.id)
+          .then((res) => {
+            if (res.code) {
+              this.form.teachers = (this.form.teachers || []).filter((t) => t.id !== teacher.id)
+              this.getClassPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
+              this.$message.success(res.msg || '已解除关联')
+            } else {
+              this.$message.error(res.msg || '解除失败')
+            }
+          })
+          .catch(() => {
+            this.$message.error('解除失败')
+          })
+          .finally(() => {
+            this.unbindingId = null
+          })
+      }).catch(() => {})
     },
     searchExam() {
       this.getClassPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
@@ -298,20 +379,70 @@ export default {
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
-      this.getClassPage(this.pageNum, val,this.formInline.searchTitle)
+      this.getClassPage(this.pageNum, val, this.formInline.searchTitle)
     },
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
-      this.getClassPage(val, this.pageSize,this.formInline.searchTitle)
+      this.getClassPage(val, this.pageSize, this.formInline.searchTitle)
     }
   }
 }
 </script>
 
-<style>
-.bj {
-  margin-top: 40px;
-  margin-left: 30px;
+<style scoped>
+.empty-text {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.teacher-empty {
+  padding: 12px;
+  font-size: 13px;
+  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px dashed #d7e3df;
+  border-radius: 8px;
+}
+
+.teacher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.teacher-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f4f7f6;
+  border: 1px solid #e4eeea;
+  border-radius: 8px;
+}
+
+.teacher-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teacher-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #102a2a;
+}
+
+.teacher-username {
+  font-size: 12px;
+  color: #7d9590;
+}
+
+.unbind-btn {
+  color: #b45353 !important;
+  flex-shrink: 0;
 }
 </style>

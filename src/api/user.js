@@ -85,6 +85,15 @@ export function changePassword(data) {
   })
 }
 
+/** 个人中心修改真实姓名（用户名不可改） */
+export function updateProfile(data) {
+  return request({
+    url: 'user/profile',
+    method: 'put',
+    data
+  })
+}
+
 export function userAddClass(params) {
   return request({
     url: 'user/grade/join',
@@ -113,6 +122,14 @@ export function uploadAvatar(data) {
     url: 'user/uploadAvatar',
     method: 'put',
     data
+  })
+}
+
+/** 恢复默认头像（清空自定义头像） */
+export function resetAvatar() {
+  return request({
+    url: 'user/avatar',
+    method: 'delete'
   })
 }
 // 学生退出班级（可指定 gradeId，支持多班级）

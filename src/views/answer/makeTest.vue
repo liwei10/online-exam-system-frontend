@@ -1,5 +1,12 @@
 <template>
-  <el-container style="height: 700px; border: 1px solid #eee">
+  <el-container
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="page-loading-host"
+    style="height: 700px; border: 1px solid #eee"
+  >
     <div class="left">
       <div class="fk">
         <!-- <div
@@ -27,8 +34,8 @@
           </div> -->
           <el-divider />
           <p>
-            共 <span style="color: #1890ff"> {{ waitQuList.length }} </span> 题, 共
-            <span style="color: #1890ff">{{
+            共 <span style="color: #0f766e"> {{ waitQuList.length }} </span> 题, 共
+            <span style="color: #0f766e">{{
               waitQuList.length * waitQuList[0].totalScore
             }}</span>
             分
@@ -129,7 +136,9 @@
 <script>
 // {{ computedStatus(userForm.agencyBaseVO.status) }}
 import { answerDetail, correct } from '@/api/answer'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
 //   computedStatus(val) {
 //      ('val', val)
 //     return val === '' ? '' : this.optionsBasic.statusMap[val]
@@ -161,10 +170,11 @@ export default {
     },
     // 获取用户作答信息
     async getUserAnswerDetail() {
-      const params = { userId: this.info.userId, examId: this.info.examId }
-
-      const res = await answerDetail(params)
-      this.waitQuList = res.data
+      await this.withPageLoading(async() => {
+        const params = { userId: this.info.userId, examId: this.info.examId }
+        const res = await answerDetail(params)
+        this.waitQuList = res.data
+      })
     },
     subCorrect() {
       const list = []
@@ -222,7 +232,7 @@ export default {
 .content {
   width: 97%;
   height: 60px;
-  border: 1px solid #0a84ff;
+  border: 1px solid #0f766e;
   margin-top: 8px;
   margin-left: 10px;
   padding: 10px;
@@ -317,7 +327,7 @@ export default {
         // 选项标签
         .qu_choose_tag_type {
           font-weight: bold;
-          color: #0a84ff;
+          color: #0f766e;
           width: 10px;
         }
         // 选项内容

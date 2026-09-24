@@ -9,15 +9,13 @@ const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
-    avatar: ''
+    // null 表示尚未从接口同步；'' 表示已确认无自定义头像（勿回退 JWT 旧值）
+    avatar: null,
+    avatarSynced: false
   }
 }
 
 const state = getDefaultState()
-// const decode = () => {
-//   const token = getToken()
-//   const user = parseJwt(token)
-// }
 
 const mutations = {
   RESET_STATE: (state) => {
@@ -30,7 +28,8 @@ const mutations = {
     state.name = name
   },
   SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
+    state.avatar = avatar == null ? '' : String(avatar)
+    state.avatarSynced = true
   }
 }
 
@@ -72,10 +71,10 @@ const actions = {
           return reject('Verification failed, please Login again.')
         }
 
-        const { name, avatar } = data
+        const { realName, userName, avatar } = data
 
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
+        commit('SET_NAME', realName || userName || '')
+        commit('SET_AVATAR', avatar || '')
         resolve(data)
       }).catch(error => {
         reject(error)

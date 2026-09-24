@@ -3,7 +3,13 @@
     <el-container>
       <el-main class="right">
         <el-col>
-          <el-card class="qu_list" v-loading="loading">
+          <el-card
+            class="qu_list"
+            v-loading="loading"
+            element-loading-text="正在查询请等待"
+            element-loading-spinner="el-icon-loading"
+            element-loading-background="rgba(232, 242, 239, 0.72)"
+          >
             <div>
               <template v-for="(index,indexx) in data">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
@@ -230,7 +236,7 @@ export default {
 .content {
   width: 97%;
   height: 60px;
-  border: 1px solid #0a84ff;
+  border: 1px solid #0f766e;
   margin-top: 8px;
   margin-left: 10px;
   padding: 10px;
@@ -326,7 +332,7 @@ export default {
         // 选项标签
         .qu_choose_tag_type {
           font-weight: bold;
-          // color: #0a84ff;
+          // color: #0f766e;
           width: 10px;
         }
         // 选项内容

@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host"
+  >
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="考试名称">
         <el-input v-model="searchTitle" placeholder="考试名称" />
@@ -15,33 +21,37 @@
         v-model="isASC"
         active-text="升序"
         inactive-text="降序"
-        active-color="#13ce66"
-        inactive-color="#409EFF"
+        active-color="#0f766e"
+        inactive-color="#c5d5d0"
         @change="toggleSort"
       />
     </div>
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" align="center" label="试卷名称" />
-      <el-table-column prop="passedScore" align="center" label="及格分" />
-      <el-table-column prop="userScore" align="center" label="用户成绩">
+      <el-table-column show-overflow-tooltip min-width="160" prop="title" align="center" label="试卷名称" />
+      <el-table-column prop="passedScore" align="center" label="及格分" min-width="90" />
+      <el-table-column prop="userScore" align="center" label="用户成绩" min-width="120">
         <template slot-scope="scope">
-          <el-tooltip :content="scope.row.userScore >= scope.row.passedScore ? '及格' : '不及格'" placement="top">
+          <el-tooltip
+            v-if="scope.row.whetherMark !== 0"
+            :content="scope.row.userScore >= scope.row.passedScore ? '及格' : '不及格'"
+            placement="top"
+          >
             <span
               :style="{
                 color: scope.row.userScore >= scope.row.passedScore ? '#67C23A' : '#F56C6C',
@@ -54,15 +64,23 @@
               {{ scope.row.userScore }}
             </span>
           </el-tooltip>
+          <el-tag v-else type="warning" size="small" effect="plain">待阅卷</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="examDuration" align="center" label="考试时长（分钟）" />
-      <el-table-column prop="userTime" align="center" label="用户用时">
+      <el-table-column align="center" label="状态" min-width="100">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.whetherMark === 0" type="warning" size="mini">待阅卷</el-tag>
+          <el-tag v-else-if="scope.row.whetherMark === 1" type="success" size="mini">已出分</el-tag>
+          <el-tag v-else size="mini" type="info">已交卷</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column min-width="90" prop="examDuration" align="center" label="考试时长（分钟）" />
+      <el-table-column min-width="90" prop="userTime" align="center" label="用户用时">
         <template slot-scope="scope">
           <div>{{ (Math.ceil(scope.row.userTime/60)).toString() + " 分钟" }}</div>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="操作">
+      <el-table-column min-width="140" align="center" label="操作">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -80,7 +98,8 @@
         <div class="h5-card-title">{{ row.title }}</div>
         <div class="h5-card-row">
           <span>成绩 / 及格分</span>
-          <span :style="{ color: row.userScore >= row.passedScore ? '#67C23A' : '#F56C6C' }">
+          <span v-if="row.whetherMark === 0" style="color: #e6a23c">待阅卷</span>
+          <span v-else :style="{ color: row.userScore >= row.passedScore ? '#67C23A' : '#F56C6C' }">
             {{ row.userScore }} / {{ row.passedScore }}
           </span>
         </div>
@@ -108,7 +127,9 @@
 
 <script>
 import { recordExamPaging } from '@/api/record'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   namespaced: true,
   data() {
     return {
@@ -169,9 +190,11 @@ export default {
     },
     // 分页查询
     async getExamRecordPaging(pageNum, pageSize, examName) {
-      const params = { pageNum: pageNum, pageSize: pageSize, examName: examName, isASC: this.isASC }
-      const res = await recordExamPaging(params)
-      this.data = res.data
+      await this.withPageLoading(async() => {
+        const params = { pageNum: pageNum, pageSize: pageSize, examName: examName, isASC: this.isASC }
+        const res = await recordExamPaging(params)
+        this.data = res.data
+      })
     },
 
     screenInfo(row) {

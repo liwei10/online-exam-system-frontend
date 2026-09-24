@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container student-dashboard">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container student-dashboard page-loading-host"
+  >
     <!-- 待考试卷 -->
     <section class="dash-panel exam-panel">
       <div class="panel-head with-action">
@@ -97,8 +103,10 @@ import { noticeGetNew, noticeDetail } from '@/api/notice'
 import { getDaily } from '@/api/stat'
 import { getGradeExamList } from '@/api/exam'
 import echarts from 'echarts'
+import pageLoading from '@/mixin/pageLoading'
 
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -160,9 +168,11 @@ export default {
     }
   },
   created() {
-    this.getDailyFun()
-    this.getNotice(this.pageNum, this.pageSize)
-    this.loadPendingExams()
+    this.withPageLoading(async() => {
+      await this.loadPendingExams()
+      this.getDailyFun()
+      await this.getNotice(this.pageNum, this.pageSize)
+    })
   },
   mounted() {
     this.initCharts()

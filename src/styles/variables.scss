@@ -1,31 +1,30 @@
-// Brand / theme
-$primary: #0d9488;
-$primaryHover: #0f766e;
-$primarySoft: rgba(13, 148, 136, 0.12);
-$pageBg: #f0f4f8;
+// Brand tokens — aligned with login page
+$primary: #0f766e;
+$primaryHover: #0d9488;
+$primarySoft: rgba(15, 118, 110, 0.12);
+$pageBg: #e8f2ef;
 $cardBg: #ffffff;
-$textPrimary: #0f172a;
-$textSecondary: #64748b;
-$borderColor: #e2e8f0;
+$textPrimary: #102a2a;
+$textSecondary: #5b6f6c;
+$borderColor: #d7e3df;
+$fieldBg: #f4f7f6;
 $radius: 12px;
 $radiusSm: 8px;
-$shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+$shadow: 0 1px 2px rgba(16, 42, 42, 0.04), 0 12px 28px rgba(16, 42, 42, 0.07);
 
-// sidebar
-$menuText: #94a3b8;
-$menuActiveText: #5eead4;
-$subMenuActiveText: #f8fafc;
+// sidebar — same family as login brand pane
+$menuText: rgba(204, 251, 241, 0.78);
+$menuActiveText: #ecfdf8;
+$subMenuActiveText: #ecfdf8;
 
-$menuBg: #0b1220;
-$menuHover: rgba(13, 148, 136, 0.18);
+$menuBg: #134e4a;
+$menuHover: rgba(236, 253, 245, 0.12);
 
-$subMenuBg: #070d18;
-$subMenuHover: rgba(13, 148, 136, 0.22);
+$subMenuBg: #0f3f3c;
+$subMenuHover: rgba(236, 253, 245, 0.16);
 
 $sideBarWidth: 220px;
 
-// the :export directive is the magic sauce for webpack
-// https://www.bluematador.com/blog/how-to-share-variables-between-js-and-sass
 :export {
   menuText: $menuText;
   menuActiveText: $menuActiveText;

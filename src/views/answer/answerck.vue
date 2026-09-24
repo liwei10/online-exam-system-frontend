@@ -1,6 +1,11 @@
 <template>
-  <div class="app-container">
-
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host"
+  >
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="用户姓名">
         <el-input v-model="realName" placeholder="输入姓名" />
@@ -13,26 +18,26 @@
       </el-form-item>
     </el-form>
     <!-- table -->
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="userName" label="用户名字" align="center" />
-      <el-table-column prop="limitTime" label="提交时间" align="center" />
+      <el-table-column min-width="120" prop="userName" label="用户名字" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="limitTime" label="提交时间" align="center" />
 
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="scope">
           <el-button
             type="text"
@@ -61,8 +66,9 @@
 
 <script>
 import { answerUserPging } from '@/api/answer'
+import pageLoading from '@/mixin/pageLoading'
 export default {
-
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -92,8 +98,9 @@ export default {
       )
     },
     getAnswerUserPage(pageNum, pageSize, examId, realName) {
-      const params = { pageNum: pageNum, pageSize: pageSize, examId: examId, 'realName': this.realName }
-      answerUserPging(params).then((res) => {
+      this.withPageLoading(async() => {
+        const params = { pageNum: pageNum, pageSize: pageSize, examId: examId, 'realName': this.realName }
+        const res = await answerUserPging(params)
         this.data = res.data
       })
     },

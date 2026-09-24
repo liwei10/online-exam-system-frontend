@@ -4,7 +4,7 @@
     style="
       width: 100%;
       height: 100%;
-      background-color: #f0f2f5;
+      background-color: #e8f2ef;
       padding: 20px 0 0;
     "
   >
@@ -371,7 +371,7 @@ export default {
 </script>
 <style scoped>
 page {
-  background: #ebecee;
+  background: #e8f2ef;
 }
 
 .btn_anniu {
@@ -440,7 +440,7 @@ page {
 }
 
 .is-checked {
-  border: #409eff 1px solid;
+  border: #0f766e 1px solid;
 }
 
 .el-radio img,

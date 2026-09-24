@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="考试名称">
         <el-input v-model="searchTitle" placeholder="请输入" />
@@ -9,27 +14,27 @@
       </el-form-item>
     </el-form>
 
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" align="center" label="试卷名称" width="250" />
-      <el-table-column prop="numberOfErrors" align="center" label="错题数量" />
-      <el-table-column prop="createTime" align="center" label="创建时间" />
-      <el-table-column align="center" label="操作">
+      <el-table-column prop="title" align="center" label="试卷名称" min-width="250" />
+      <el-table-column min-width="80" prop="numberOfErrors" align="center" label="错题数量" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" align="center" label="创建时间" />
+      <el-table-column min-width="140" align="center" label="操作">
         <template slot-scope="{ row }">
           <!-- <el-button type="text" size="small" style="font-size: 14px" @click="updateRow(row)">查看</el-button> -->
           <el-button
@@ -109,7 +114,9 @@
 
 <script>
 import { userbookPaging } from '@/api/userbook'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   data() {
     return {
       pageNum: 1,
@@ -169,10 +176,15 @@ export default {
     },
     // 分页查询
     async getUserBookPage(pageNum, pageSize, examName = null) {
-      const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
-      const res = await userbookPaging(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
+        const res = await userbookPaging(params)
+        this.data = res.data
+
+      })
+
+      },
     searchUserBook() {
       this.getUserBookPage(this.pageNum, this.pageSize, this.searchTitle)
     },

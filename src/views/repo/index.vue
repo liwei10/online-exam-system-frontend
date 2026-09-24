@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="题库名称:">
         <el-input v-model="searchTitle" placeholder="请输入查询内容" />
@@ -22,33 +27,33 @@
     </el-form>
 
     <!-- table -->
-    <el-table
+    <el-table class="flex-list-table"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="题库名称" align="center" />
-      <el-table-column prop="categoryName" label="题库分类" align="center" />
-      <el-table-column label="题目数量" align="center">
+      <el-table-column show-overflow-tooltip min-width="160" prop="title" label="题库名称" align="center" />
+      <el-table-column min-width="110" prop="categoryName" label="题库分类" align="center" />
+      <el-table-column min-width="80" label="题目数量" align="center">
         <template slot-scope="{ row }">
           <span :style="{ color: row.questionCount === 0 ? '#F56C6C' : '' }">{{ row.questionCount }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="realName" label="创建人" align="center" />
-      <el-table-column prop="createTime" label="创建时间" align="center" />
+      <el-table-column min-width="120" prop="realName" label="创建人" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" label="创建时间" align="center" />
 
-      <el-table-column label="开启刷题" align="center">
+      <el-table-column min-width="90" label="开启刷题" align="center">
         <template slot-scope="{ row }">
           <el-tag :type="row.isExercise === 1 ? 'success' : 'danger'" :effect="row.isExercise === 0 ? 'dark' : 'light'">
             {{ row.isExercise === 1 ? '已开启' : '未开启' }}
@@ -56,7 +61,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="开放班级" align="center">
+      <el-table-column min-width="140" label="开放班级" align="center">
         <template slot-scope="{ row }">
           <el-tag v-if="row.gradeIds && row.gradeIds.length" type="success">
             已绑定 {{ row.gradeIds.length }} 个班
@@ -64,7 +69,7 @@
           <el-tag v-else type="info">未绑定</el-tag>
         </template>
       </el-table-column>
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button type="text" size="small" style="font-size: 14px" @click="updateRow(row)">编辑</el-button>
           <el-button type="text" size="small" style="color: red; font-size: 14px" @click="delRepo(row)">删除</el-button>
@@ -149,10 +154,10 @@
       <div class="category-header">
         <el-button type="primary" size="small" @click="addCategory">添加分类</el-button>
       </div>
-      <el-table :data="categoryList" border style="width: 100%">
+      <el-table class="flex-list-table" :data="categoryList" border style="width: 100%">
         <el-table-column prop="name" label="分类名称" />
         <el-table-column prop="parentName" label="父级分类" />
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" min-width="150">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="editCategory(scope.row)">编辑</el-button>
             <el-button type="text" size="small" style="color: red;" @click="deleteCategory(scope.row.id)">删除</el-button>
@@ -214,7 +219,9 @@ import { repoPaging, repoDel, repoUpdate, repoAdd } from '@/api/repo'
 import { getCategoryTree, addCategory, updateCategory, deleteCategory } from '@/api/category'
 import ClassSelect from '@/components/ClassSelect'
 
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
   components: {
     ClassSelect
   },
@@ -276,24 +283,29 @@ export default {
   methods: {
     // 分页查询
     async getRepoPage(pageNum = this.pageNum, pageSize = this.pageSize, title = null, categoryId = null) {
-      try {
-        const params = {
-          pageNum: pageNum,
-          pageSize: pageSize,
-          title: title,
-          categoryId: categoryId
+
+      await this.withPageLoading(async () => {
+        try {
+          const params = {
+            pageNum: pageNum,
+            pageSize: pageSize,
+            title: title,
+            categoryId: categoryId
+          }
+          const res = await repoPaging(params)
+          if (res.code) {
+            this.data = res.data
+          } else {
+            this.$message.error(res.msg || '获取题库数据失败')
+          }
+        } catch (error) {
+          console.error('获取题库数据失败:', error)
+          this.$message.error('获取题库数据失败')
         }
-        const res = await repoPaging(params)
-        if (res.code) {
-          this.data = res.data
-        } else {
-          this.$message.error(res.msg || '获取题库数据失败')
-        }
-      } catch (error) {
-        console.error('获取题库数据失败:', error)
-        this.$message.error('获取题库数据失败')
-      }
-    },
+
+      })
+
+      },
     // 获取分类列表
     async fetchCategories() {
       try {

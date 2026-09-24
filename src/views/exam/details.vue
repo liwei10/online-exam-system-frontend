@@ -1,5 +1,11 @@
 <template>
-  <div v-loading="loading" class="app-container exam-details-page">
+  <div
+    v-loading="loading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container exam-details-page page-loading-host"
+  >
     <el-form
       v-if="examInfo.id"
       ref="form"
@@ -336,7 +342,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table
+      <el-table style="width: 100%" class="flex-list-table"
         ref="pickerTable"
         v-loading="picker.loading"
         :data="picker.records"
@@ -385,7 +391,7 @@
     >
       <div class="class-dialog-block">
         <div class="class-dialog-title">已选班级</div>
-        <el-table :data="classDialog.list" border size="small" empty-text="暂无班级，请下方添加">
+        <el-table style="width: 100%" class="flex-list-table" :data="classDialog.list" border size="small" empty-text="暂无班级，请下方添加">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column prop="name" label="班级名称" min-width="200" />
           <el-table-column label="操作" width="90" align="center">

@@ -1,5 +1,10 @@
 <template>
-  <div class="app-container">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container page-loading-host">
     <el-form :inline="true" :model="formInline" class="demo-form-inline">
       <el-form-item label="考试名称">
         <el-input v-model="formInline.searchTitle" placeholder="考试名称" />
@@ -10,29 +15,29 @@
       </el-form-item>
     </el-form>
 
-    <el-table
+    <el-table class="flex-list-table"
       v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
       :header-cell-style="{
-        background: '#f2f3f4',
+        background: '#eef6f3',
         color: '#555',
         'font-weight': 'bold',
         'line-height': '32px',
       }"
     >
-      <el-table-column align="center" type="selection" width="55" />
-      <el-table-column fixed label="序号" align="center" width="80">
+      <el-table-column align="center" type="selection" min-width="48" />
+      <el-table-column label="序号" align="center" min-width="56">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="certificateName" label="证书名称" align="center" />
-      <el-table-column prop="certificationNuit" label="证书颁发单位" align="center" />
+      <el-table-column show-overflow-tooltip min-width="160" prop="certificateName" label="证书名称" align="center" />
+      <el-table-column min-width="120" prop="certificationNuit" label="证书颁发单位" align="center" />
 
-      <el-table-column prop="examName" label="考试名称" align="center" />
-      <el-table-column prop="createTime" label="获奖时间" align="center" />
-      <el-table-column fixed="right" label="操作" align="center">
+      <el-table-column min-width="140" prop="examName" label="考试名称" align="center" />
+      <el-table-column min-width="148" class-name="datetime-col" prop="createTime" label="获奖时间" align="center" />
+      <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button
             type="text"
@@ -117,7 +122,9 @@
 <script>
 import { certificateMy } from '@/api/certificate'
 import { getTokenInfo } from '@/utils/jwtUtils'
+import pageLoading from '@/mixin/pageLoading'
 export default {
+  mixins: [pageLoading],
 
   data() {
     return {
@@ -164,10 +171,15 @@ export default {
     },
     // 分页查询
     async getCerPage(pageNum, pageSize, examName) {
-      const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
-      const res = await certificateMy(params)
-      this.data = res.data
-    },
+
+      await this.withPageLoading(async () => {
+        const params = { pageNum: pageNum, pageSize: pageSize, examName: examName }
+        const res = await certificateMy(params)
+        this.data = res.data
+
+      })
+
+      },
     handleClose() {
       this.dialogVisible = false
     },
@@ -200,7 +212,7 @@ export default {
   height: 550px;
   margin: auto;
   margin-top: 40px;
-  box-shadow: 0px 0px 7px 4px #f0f2f5;
+  box-shadow: 0px 0px 7px 4px #e8f2ef;
 }
 ::v-deep .el-dialog__body {
   padding: 0px;

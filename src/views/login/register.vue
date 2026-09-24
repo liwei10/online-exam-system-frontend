@@ -1,143 +1,164 @@
-<!--
- * @Author: st 2946594574@qq.com
- * @Date: 2024-03-04 10:55:05
- * @LastEditors: yangiiiiii 14122140+yangiiiiiii@user.noreply.gitee.com
- * @LastEditTime: 2024-05-20 09:07:35
- * @FilePath: \com-project\src\views\login\index.vue
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
--->
 <template>
-  <div class="login-container">
-    <div class="login-atmosphere" aria-hidden="true">
-      <span class="orb orb-a" />
-      <span class="orb orb-b" />
-      <span class="orb orb-c" />
-      <span class="grid-fade" />
+  <div class="login-page">
+    <div class="login-bg" aria-hidden="true">
+      <span class="wash wash-a" />
+      <span class="wash wash-b" />
+      <span class="grain" />
     </div>
 
-    <div class="login-shell">
-      <aside class="login-brand">
-        <p class="brand-kicker">Online Exam</p>
-        <h1 class="brand-title">校园在线考试系统</h1>
-        <p class="brand-desc">创建账号，开启练习与考试之旅</p>
+    <div class="login-stage register-stage">
+      <aside class="brand-pane">
+        <div class="brand-visual" aria-hidden="true">
+          <span class="sheet sheet-a" />
+          <span class="sheet sheet-b" />
+          <span class="mark" />
+        </div>
+        <div class="brand-copy">
+          <p class="brand-name">校园在线考试系统</p>
+          <p class="brand-line">创建账号，开启练习与考试之旅</p>
+          <ul class="brand-points">
+            <li style="--i: 0">组卷阅卷一体，流程更顺</li>
+            <li style="--i: 1">刷题即时反馈，巩固更快</li>
+            <li style="--i: 2">班级权限清晰，管理更省心</li>
+          </ul>
+        </div>
       </aside>
 
-      <el-form
-        ref="registerForm"
-        :model="registerForm"
-        :rules="loginRules"
-        class="login-form"
-        auto-complete="on"
-        label-position="left"
-      >
-        <div class="title-container">
-          <h3 class="title">注册账号</h3>
-          <p class="subtitle">填写信息完成注册</p>
-        </div>
+      <section class="form-pane">
+        <el-form
+          ref="registerForm"
+          :model="registerForm"
+          :rules="loginRules"
+          class="login-form"
+          auto-complete="on"
+          label-position="top"
+        >
+          <header class="form-head">
+            <h2 class="form-title">注册账号</h2>
+            <p class="form-sub">填写信息完成注册</p>
+          </header>
 
-        <el-form-item prop="userName">
-          <span class="svg-container">
-            <svg-icon icon-class="user" />
-          </span>
-          <el-input
-            ref="username"
-            v-model="registerForm.userName"
-            placeholder="用户名"
-            name="username"
-            type="text"
-            tabindex="1"
-            auto-complete="on"
-          />
-        </el-form-item>
-        <el-form-item prop="realName">
-          <span class="svg-container">
-            <svg-icon icon-class="user" />
-          </span>
-          <el-input
-            ref="realName"
-            v-model="registerForm.realName"
-            placeholder="真实姓名"
-            name="realName"
-            type="text"
-            tabindex="2"
-            auto-complete="on"
-          />
-        </el-form-item>
-        <el-form-item prop="password">
-          <span class="svg-container">
-            <svg-icon icon-class="password" />
-          </span>
-          <el-input
-            :key="passwordType"
-            ref="password"
-            v-model="registerForm.password"
-            :type="passwordType"
-            placeholder="密码"
-            name="password"
-            tabindex="3"
-            auto-complete="on"
-          />
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-          </span>
-        </el-form-item>
-
-        <el-form-item prop="checkedPassword">
-          <span class="svg-container">
-            <svg-icon icon-class="password" />
-          </span>
-          <el-input
-            :key="checkedPasswordType"
-            ref="checkedPassword"
-            v-model="registerForm.checkedPassword"
-            :type="checkedPasswordType"
-            placeholder="确认密码"
-            name="checkedPassword"
-            tabindex="4"
-            auto-complete="on"
-          />
-          <span class="show-pwd" @click="showPwd2">
-            <svg-icon
-              :icon-class="checkedPasswordType === 'password' ? 'eye' : 'eye-open'"
-            />
-          </span>
-        </el-form-item>
-
-        <div class="captcha-row">
-          <el-form-item prop="code" class="captcha-item">
-            <span class="svg-container">
-              <svg-icon icon-class="code" />
-            </span>
-            <el-input
-              ref="code"
-              v-model="registerForm.code"
-              placeholder="验证码"
-              name="code"
-              type="text"
-              tabindex="5"
-              auto-complete="off"
-              @keyup.enter.native="registerFn"
-            />
+          <el-form-item prop="userName" label="用户名">
+            <div class="field">
+              <span class="field-icon">
+                <svg-icon icon-class="user" />
+              </span>
+              <el-input
+                ref="username"
+                v-model="registerForm.userName"
+                placeholder="请输入用户名"
+                name="username"
+                type="text"
+                tabindex="1"
+                auto-complete="on"
+              />
+            </div>
           </el-form-item>
-          <img
-            ref="captchaImg"
-            class="captcha-img"
-            :src="captchaUrl"
-            alt="验证码"
-            @click="getVerify"
-          >
-        </div>
-        <div class="form-extra">
-          <router-link class="link" to="/login">已有账号？去登录</router-link>
-        </div>
 
-        <el-button
-          :loading="loading"
-          type="primary"
-          class="submit-btn"
-          @click="registerFn"
-        >注册</el-button>
-      </el-form>
+          <el-form-item prop="realName" label="真实姓名">
+            <div class="field">
+              <span class="field-icon">
+                <svg-icon icon-class="user" />
+              </span>
+              <el-input
+                ref="realName"
+                v-model="registerForm.realName"
+                placeholder="请输入真实姓名"
+                name="realName"
+                type="text"
+                tabindex="2"
+                auto-complete="on"
+              />
+            </div>
+          </el-form-item>
+
+          <el-form-item prop="password" label="密码">
+            <div class="field">
+              <span class="field-icon">
+                <svg-icon icon-class="password" />
+              </span>
+              <el-input
+                :key="passwordType"
+                ref="password"
+                v-model="registerForm.password"
+                :type="passwordType"
+                placeholder="请输入密码"
+                name="password"
+                tabindex="3"
+                auto-complete="on"
+              />
+              <span class="field-action" @click="showPwd">
+                <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+              </span>
+            </div>
+          </el-form-item>
+
+          <el-form-item prop="checkedPassword" label="确认密码">
+            <div class="field">
+              <span class="field-icon">
+                <svg-icon icon-class="password" />
+              </span>
+              <el-input
+                :key="checkedPasswordType"
+                ref="checkedPassword"
+                v-model="registerForm.checkedPassword"
+                :type="checkedPasswordType"
+                placeholder="请再次输入密码"
+                name="checkedPassword"
+                tabindex="4"
+                auto-complete="on"
+              />
+              <span class="field-action" @click="showPwd2">
+                <svg-icon :icon-class="checkedPasswordType === 'password' ? 'eye' : 'eye-open'" />
+              </span>
+            </div>
+          </el-form-item>
+
+          <el-form-item prop="code" label="验证码">
+            <div class="captcha-row">
+              <div class="field captcha-field">
+                <span class="field-icon">
+                  <svg-icon icon-class="code" />
+                </span>
+                <el-input
+                  ref="code"
+                  v-model="registerForm.code"
+                  placeholder="请输入验证码"
+                  name="code"
+                  type="text"
+                  tabindex="5"
+                  auto-complete="off"
+                  @keyup.enter.native="registerFn"
+                />
+              </div>
+              <button
+                type="button"
+                class="captcha-btn"
+                title="点击刷新验证码"
+                @click="getVerify"
+              >
+                <img
+                  ref="captchaImg"
+                  class="captcha-img"
+                  :src="captchaUrl"
+                  alt="验证码"
+                >
+              </button>
+            </div>
+          </el-form-item>
+
+          <div class="form-extra">
+            <router-link class="link" to="/login">已有账号？去登录</router-link>
+          </div>
+
+          <el-button
+            :loading="loading"
+            type="primary"
+            class="submit-btn"
+            @click="registerFn"
+          >注册</el-button>
+        </el-form>
+      </section>
     </div>
 
     <div v-if="icpNumber" class="icp-info">
@@ -300,7 +321,6 @@ export default {
     getVerify() {
       this.refreshCaptcha()
     },
-
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -326,115 +346,94 @@ export default {
 </script>
 
 <style lang="scss">
-$field-bg: #f8fafc;
-$text: #0f172a;
-$primary: #0d9488;
+$ink: #102a2a;
+$muted: #5b6f6c;
+$primary: #0f766e;
+$field: #f4f7f6;
 
-.login-container {
-  .el-input {
-    display: block;
-    flex: 1;
-    min-width: 0;
-    height: 48px;
-    width: auto;
-
-    input {
-      background: transparent;
-      border: 0;
-      -webkit-appearance: none;
-      border-radius: 0;
-      padding: 12px 8px 12px 4px;
-      color: $text;
-      height: 48px;
-      caret-color: $primary;
-      font-size: 15px;
-
-      &:-webkit-autofill {
-        box-shadow: 0 0 0 1000px $field-bg inset !important;
-        -webkit-text-fill-color: $text !important;
-      }
-    }
-  }
-
-  .svg-container {
-    flex-shrink: 0;
-  }
+.login-page {
+  font-family: 'Plus Jakarta Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
   .el-form-item {
-    border: 1px solid #e2e8f0;
-    background: $field-bg;
-    border-radius: 12px;
     margin-bottom: 16px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
-    &:hover {
-      border-color: rgba(13, 148, 136, 0.45);
-      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+    .el-form-item__label {
+      padding: 0 0 8px;
+      line-height: 1.2;
+      color: $ink;
+      font-size: 13px;
+      font-weight: 600;
     }
 
     .el-form-item__content {
-      display: flex;
-      align-items: center;
-      flex-wrap: nowrap;
       line-height: normal;
     }
 
     .el-form-item__error {
-      padding-top: 6px;
-      left: 12px;
+      padding-top: 4px;
+      left: 2px;
     }
   }
 
-  .captcha-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 10px;
-    margin-bottom: 16px;
+  .el-input {
+    flex: 1;
+    min-width: 0;
 
-    .captcha-item {
-      flex: 1;
-      min-width: 0;
-      margin-bottom: 0;
-    }
+    input {
+      border: 0;
+      background: transparent;
+      height: 46px;
+      line-height: 46px;
+      padding: 0 8px 0 4px;
+      color: $ink;
+      font-size: 15px;
+      caret-color: $primary;
+      -webkit-appearance: none;
+      border-radius: 0;
 
-    .captcha-img {
-      margin-left: 0;
-      height: 50px;
-      width: auto;
-      max-width: 120px;
-      flex-shrink: 0;
-      object-fit: contain;
-      cursor: pointer;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-      background: #fff;
+      &:-webkit-autofill {
+        box-shadow: 0 0 0 1000px $field inset !important;
+        -webkit-text-fill-color: $ink !important;
+      }
+
+      &::placeholder {
+        color: #8aa09b;
+      }
     }
   }
 
   .el-button--primary {
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    background: $primary;
     border: none;
     border-radius: 12px;
     height: 48px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    box-shadow: 0 10px 24px rgba(13, 148, 136, 0.28);
+    letter-spacing: 0.06em;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 
     &:hover,
     &:focus {
-      background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
+      background: #0d9488;
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(15, 118, 110, 0.28);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }
 </style>
 
 <style lang="scss" scoped>
-$primary: #0d9488;
-$muted: #64748b;
+$ink: #102a2a;
+$muted: #5b6f6c;
+$primary: #0f766e;
+$field: #f4f7f6;
+$line: #d7e3df;
 
-.login-container {
+.login-page {
   position: relative;
   min-height: 100%;
   width: 100%;
@@ -442,91 +441,78 @@ $muted: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 20px 56px;
-  background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(45, 212, 191, 0.22), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 10%, rgba(56, 189, 248, 0.18), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 70% 90%, rgba(13, 148, 136, 0.16), transparent 45%),
-    linear-gradient(160deg, #ecfeff 0%, #f0f9ff 42%, #f8fafc 100%);
+  padding: 28px 20px 52px;
+  background: #e8f2ef;
 }
 
-.login-atmosphere {
+.login-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  overflow: hidden;
 }
 
-.orb {
+.wash {
   position: absolute;
   border-radius: 50%;
-  filter: blur(2px);
-  opacity: 0.55;
-  animation: float 14s ease-in-out infinite;
+  filter: blur(8px);
 }
 
-.orb-a {
-  width: 280px;
-  height: 280px;
-  left: -60px;
-  top: 12%;
-  background: radial-gradient(circle, rgba(45, 212, 191, 0.55), transparent 70%);
+.wash-a {
+  width: 52vw;
+  height: 52vw;
+  left: -18vw;
+  top: -20vw;
+  background: radial-gradient(circle, rgba(45, 180, 160, 0.35), transparent 68%);
+  animation: drift 18s ease-in-out infinite;
 }
 
-.orb-b {
-  width: 220px;
-  height: 220px;
-  right: 8%;
-  top: 8%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.45), transparent 70%);
-  animation-delay: -4s;
+.wash-b {
+  width: 46vw;
+  height: 46vw;
+  right: -14vw;
+  bottom: -18vw;
+  background: radial-gradient(circle, rgba(56, 140, 160, 0.28), transparent 68%);
+  animation: drift 22s ease-in-out infinite reverse;
 }
 
-.orb-c {
-  width: 320px;
-  height: 320px;
-  right: -80px;
-  bottom: -40px;
-  background: radial-gradient(circle, rgba(13, 148, 136, 0.35), transparent 70%);
-  animation-delay: -8s;
-}
-
-.grid-fade {
+.grain {
   position: absolute;
   inset: 0;
+  opacity: 0.35;
   background-image:
-    linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 75%);
+    linear-gradient(rgba(16, 42, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 42, 42, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 25%, transparent 80%);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-18px) scale(1.04); }
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(18px, -14px); }
 }
 
-.login-shell {
+.login-stage {
   position: relative;
   z-index: 1;
-  width: min(920px, 100%);
+  width: min(980px, 100%);
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 24px;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 24px 48px rgba(15, 23, 42, 0.1);
+  grid-template-columns: 1.08fr 0.92fr;
+  min-height: 560px;
+  background: #fff;
+  border-radius: 28px;
   overflow: hidden;
-  animation: shell-in 0.55s ease both;
+  box-shadow: 0 24px 60px rgba(16, 42, 42, 0.12);
+  animation: stage-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes shell-in {
+.register-stage {
+  min-height: 640px;
+}
+
+@keyframes stage-in {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
@@ -534,125 +520,273 @@ $muted: #64748b;
   }
 }
 
-.login-brand {
-  padding: 48px 40px;
-  background:
-    linear-gradient(160deg, rgba(15, 118, 110, 0.95) 0%, rgba(8, 47, 73, 0.92) 100%);
-  color: #ecfeff;
+.brand-pane {
+  position: relative;
+  padding: 48px 44px;
+  color: #ecfdf8;
+  background: linear-gradient(155deg, #0f766e 0%, #115e59 48%, #134e4a 100%);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  min-height: 560px;
+  justify-content: flex-end;
+  overflow: hidden;
 }
 
-.brand-kicker {
-  margin: 0 0 12px;
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(204, 251, 241, 0.75);
+.brand-visual {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.brand-title {
+.sheet {
+  position: absolute;
+  border-radius: 14px;
+  border: 1px solid rgba(236, 253, 245, 0.22);
+  background: rgba(236, 253, 245, 0.08);
+}
+
+.sheet-a {
+  width: 180px;
+  height: 230px;
+  right: 56px;
+  top: 58px;
+  transform: rotate(8deg);
+  animation: sheet-float-a 10s ease-in-out infinite;
+}
+
+.sheet-b {
+  width: 150px;
+  height: 190px;
+  right: 28px;
+  top: 96px;
+  transform: rotate(-6deg);
+  background: rgba(236, 253, 245, 0.12);
+  animation: sheet-float-b 12s ease-in-out infinite;
+}
+
+.mark {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  right: 92px;
+  top: 148px;
+  border-radius: 50%;
+  border: 2px solid rgba(167, 243, 208, 0.85);
+  animation: pulse 3.6s ease-in-out infinite;
+}
+
+.mark::after {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  width: 12px;
+  height: 20px;
+  border-right: 2.5px solid rgba(167, 243, 208, 0.95);
+  border-bottom: 2.5px solid rgba(167, 243, 208, 0.95);
+  transform: rotate(40deg);
+}
+
+@keyframes sheet-float-a {
+  0%, 100% { transform: translateY(0) rotate(8deg); }
+  50% { transform: translateY(-10px) rotate(6deg); }
+}
+
+@keyframes sheet-float-b {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-8px) rotate(-4deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.brand-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 22em;
+}
+
+.brand-name {
   margin: 0;
-  font-size: 34px;
-  line-height: 1.25;
+  font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  font-size: clamp(30px, 3.4vw, 40px);
   font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: 0.02em;
+  animation: rise 0.7s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.brand-desc {
-  margin: 18px 0 0;
+.brand-line {
+  margin: 14px 0 0;
   font-size: 15px;
   line-height: 1.7;
-  color: rgba(204, 251, 241, 0.82);
-  max-width: 16em;
+  color: rgba(204, 251, 241, 0.88);
+  animation: rise 0.7s 0.16s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.brand-points {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+
+  li {
+    position: relative;
+    padding-left: 18px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: rgba(204, 251, 241, 0.8);
+    animation: rise 0.65s calc(0.24s + var(--i) * 0.08s) cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: rgba(110, 231, 183, 0.9);
+    }
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.form-pane {
+  display: flex;
+  align-items: center;
+  padding: 32px 40px;
+  background: #fff;
 }
 
 .login-form {
-  position: relative;
   width: 100%;
-  padding: 36px 40px 40px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.form-head {
+  margin-bottom: 20px;
+}
+
+.form-title {
   margin: 0;
-  box-sizing: border-box;
+  font-size: 26px;
+  font-weight: 700;
+  color: $ink;
+  letter-spacing: 0.01em;
+}
+
+.form-sub {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: $muted;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 12px 0 4px;
+  border: 1px solid $line;
+  border-radius: 12px;
+  background: $field;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: rgba(15, 118, 110, 0.55);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+  }
+}
+
+.field-icon {
+  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7d9590;
+  flex-shrink: 0;
+}
+
+.field-action {
+  width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7d9590;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .captcha-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  gap: 10px;
 }
 
-.captcha-item {
+.captcha-field {
   flex: 1;
   min-width: 0;
 }
 
+.captcha-btn {
+  width: 118px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid $line;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(15, 118, 110, 0.45);
+  }
+}
+
 .captcha-img {
-  height: 50px;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.svg-container {
-  padding: 6px 8px 6px 14px;
-  color: $muted;
-  vertical-align: middle;
-  width: 30px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.title-container {
-  margin-bottom: 22px;
-
-  .title {
-    margin: 0;
-    font-size: 26px;
-    color: #0f172a;
-    font-weight: 700;
-  }
-
-  .subtitle {
-    margin: 8px 0 0;
-    font-size: 14px;
-    color: $muted;
-  }
-}
-
-.show-pwd {
-  position: absolute;
-  right: 14px;
-  top: 8px;
-  font-size: 16px;
-  color: $muted;
-  cursor: pointer;
-  user-select: none;
+  display: block;
+  width: 100%;
+  height: 48px;
+  object-fit: cover;
 }
 
 .form-extra {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-  margin: -4px 0 16px;
+  margin: -2px 0 12px;
 }
 
 .link {
   color: $primary;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
 
   &:hover {
-    color: #0f766e;
+    color: #0d9488;
   }
 }
 
 .submit-btn {
   width: 100%;
-  margin-bottom: 8px;
+  margin-top: 4px;
 }
 
 .icp-info {
   position: absolute;
-  bottom: 16px;
+  bottom: 14px;
   left: 0;
   width: 100%;
   text-align: center;
@@ -664,32 +798,42 @@ $muted: #64748b;
     text-decoration: none;
 
     &:hover {
-      color: #0f172a;
+      color: $ink;
       text-decoration: underline;
     }
   }
 }
 
-@media screen and (max-width: 860px) {
-  .login-shell {
+@media screen and (max-width: 900px) {
+  .login-stage {
     grid-template-columns: 1fr;
-  }
-
-  .login-brand {
     min-height: auto;
-    padding: 28px 24px 20px;
   }
 
-  .brand-title {
-    font-size: 26px;
+  .register-stage {
+    min-height: auto;
   }
 
-  .brand-desc {
-    margin-top: 10px;
-    max-width: none;
+  .brand-pane {
+    min-height: 200px;
+    padding: 28px 24px 24px;
   }
 
-  .login-form {
+  .sheet-a,
+  .sheet-b,
+  .mark {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: 28px;
+  }
+
+  .brand-points {
+    display: none;
+  }
+
+  .form-pane {
     padding: 24px 24px 32px;
   }
 }

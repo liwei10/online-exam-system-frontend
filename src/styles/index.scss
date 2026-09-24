@@ -6,12 +6,14 @@
 @use 'page.scss';
 @use 'mobile.scss';
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 body {
   height: 100%;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   color: vars.$textPrimary;
   background: vars.$pageBg;
 }
@@ -78,8 +80,8 @@ div:focus {
 
 .main-container {
   background:
-    radial-gradient(ellipse 55% 35% at 100% 0%, rgba(45, 212, 191, 0.1), transparent 55%),
-    radial-gradient(ellipse 40% 30% at 0% 100%, rgba(56, 189, 248, 0.06), transparent 50%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(45, 180, 160, 0.16), transparent 58%),
+    radial-gradient(ellipse 45% 35% at 0% 100%, rgba(15, 118, 110, 0.1), transparent 52%),
     vars.$pageBg;
 }
 

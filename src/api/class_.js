@@ -60,3 +60,11 @@ export function teacherExitClass(gradeId) {
     method: 'delete'
   })
 }
+
+// 管理员解除教师与班级关联
+export function removeTeacherFromGrade(gradeId, teacherId) {
+  return request({
+    url: `grades/${gradeId}/teacher/${teacherId}`,
+    method: 'delete'
+  })
+}

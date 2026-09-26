@@ -68,3 +68,11 @@ export function removeTeacherFromGrade(gradeId, teacherId) {
     method: 'delete'
   })
 }
+
+export function classSort(id, direction) {
+  return request({
+    url: `grades/${id}/sort`,
+    method: 'put',
+    params: { direction }
+  })
+}

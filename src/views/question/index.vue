@@ -124,28 +124,41 @@
       <el-table-column align="center" label="操作" min-width="250">
         <template slot-scope="{ row }">
           <div class="op-btns">
+            <el-tooltip
+              content="请先筛选具体题库后再排序"
+              placement="top"
+              :disabled="!!selectedRepoSingleSearch"
+            >
+              <span class="op-btn-wrap">
+                <el-button
+                  type="text"
+                  size="small"
+                  style="font-size: 14px"
+                  :disabled="!selectedRepoSingleSearch"
+                  @click="moveQu(row, 'up')"
+                >上移</el-button>
+              </span>
+            </el-tooltip>
+            <el-tooltip
+              content="请先筛选具体题库后再排序"
+              placement="top"
+              :disabled="!!selectedRepoSingleSearch"
+            >
+              <span class="op-btn-wrap">
+                <el-button
+                  type="text"
+                  size="small"
+                  style="font-size: 14px"
+                  :disabled="!selectedRepoSingleSearch"
+                  @click="moveQu(row, 'down')"
+                >下移</el-button>
+              </span>
+            </el-tooltip>
             <el-button
               type="text"
               size="small"
               style="font-size: 14px"
-              :disabled="!selectedRepoSingleSearch"
-              title="请先筛选具体题库后再排序"
-              @click="moveQu(row, 'up')"
-            >上移</el-button>
-            <el-button
-              type="text"
-              size="small"
-              style="font-size: 14px"
-              :disabled="!selectedRepoSingleSearch"
-              title="请先筛选具体题库后再排序"
-              @click="moveQu(row, 'down')"
-            >下移</el-button>
-            <el-button
-              v-if="row.quType == 5"
-              type="text"
-              size="small"
-              style="font-size: 14px"
-              @click="previewFillBlank(row)"
+              @click="previewQuestion(row)"
             >预览</el-button>
             <el-button
               type="text"
@@ -165,15 +178,16 @@
     </el-table>
 
     <el-dialog
-      title="填空题预览（学生端效果）"
+      title="试题预览（学生端效果）"
       :visible.sync="previewVisible"
       width="680px"
       append-to-body
       @closed="onPreviewClosed"
     >
       <div v-loading="previewLoading">
-        <fill-blank-preview
+        <question-preview
           v-if="previewData"
+          :qu-type="previewData.quType"
           :content="previewData.content"
           :image="previewData.image"
           :audio="previewData.audio"
@@ -229,12 +243,12 @@
 <script>
 import { quPaging, quDel, quUpdate, importQue, quSort, quDetail } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
-import FillBlankPreview from '@/components/FillBlankPreview'
+import QuestionPreview from '@/components/QuestionPreview'
 
 import pageLoading from '@/mixin/pageLoading'
 export default {
   mixins: [pageLoading],
-  components: { RepoSelect, FillBlankPreview },
+  components: { RepoSelect, QuestionPreview },
   data() {
     return {
       options: [
@@ -357,7 +371,7 @@ export default {
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
     },
-    async previewFillBlank(row) {
+    async previewQuestion(row) {
       this.previewVisible = true
       this.previewLoading = true
       this.previewData = null
@@ -365,6 +379,7 @@ export default {
         const res = await quDetail(row.id)
         if (res.code && res.data) {
           this.previewData = {
+            quType: res.data.quType,
             content: res.data.content || '',
             image: res.data.image || '',
             audio: res.data.audio || '',
@@ -617,12 +632,24 @@ export default {
   white-space: nowrap;
 }
 
+.op-btns .op-btn-wrap,
 .op-btns .el-button {
+  display: inline-block;
   margin-left: 4px;
+  vertical-align: middle;
+}
+
+.op-btns .op-btn-wrap:first-child,
+.op-btns > .el-button:first-child {
+  margin-left: 0;
+}
+
+.op-btns .op-btn-wrap .el-button {
+  margin-left: 0;
   padding: 0 2px;
 }
 
-.op-btns .el-button:first-child {
-  margin-left: 0;
+.op-btns > .el-button {
+  padding: 0 2px;
 }
 </style>

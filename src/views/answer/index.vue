@@ -45,15 +45,24 @@
       <el-table-column min-width="72" prop="classSize" label="总人数" align="center" />
       <el-table-column min-width="100" prop="numberOfApplicants" label="实际参考人数" align="center" />
       <el-table-column min-width="100" prop="correctedPaper" label="已阅卷人数" align="center" />
+      <el-table-column min-width="100" prop="pendingMark" label="待阅卷人数" align="center" />
       <el-table-column min-width="140" label="操作" align="center">
         <template slot-scope="{ row }">
-          <el-button
-            type="text"
-            size="small"
-            style="font-size: 14px"
-            :disabled="row.numberOfApplicants <= row.correctedPaper"
-            @click="screenInfo(row)"
-          >查看详情</el-button>
+          <el-tooltip
+            content="暂无考生交卷，无法查看阅卷详情"
+            placement="top"
+            :disabled="Number(row.numberOfApplicants) > 0"
+          >
+            <span class="op-btn-wrap">
+              <el-button
+                type="text"
+                size="small"
+                style="font-size: 14px"
+                :disabled="!(Number(row.numberOfApplicants) > 0)"
+                @click="screenInfo(row)"
+              >查看详情</el-button>
+            </span>
+          </el-tooltip>
         </template>
       </el-table-column>
     </el-table>
@@ -203,4 +212,8 @@ export default {
   }
 }
 </script>
-<style></style>
+<style>
+.op-btn-wrap {
+  display: inline-block;
+}
+</style>

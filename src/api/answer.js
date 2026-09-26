@@ -24,6 +24,14 @@ export function answerDetail(params) {
   })
 }
 
+export function answerPaperSummary(params) {
+  return request({
+    url: 'answers/exam/stu/summary',
+    method: 'get',
+    params
+  })
+}
+
 export function correct(data) {
   return request({
     url: 'answers/correct',
@@ -31,11 +39,3 @@ export function correct(data) {
     data
   })
 }
-
-// export function scorePaging(data) {
-//     return request({
-//       url: 'answers/correct',
-//       method: 'put',
-//       data
-//     })
-//   }

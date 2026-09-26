@@ -63,9 +63,23 @@
       </el-table-column>
       <el-table-column prop="code" label="班级口令" align="center" min-width="140" />
       <el-table-column prop="userName" label="创建用户" align="center" min-width="110" />
-      <el-table-column align="center" label="操作" min-width="140">
+      <el-table-column align="center" label="操作" min-width="220">
         <template slot-scope="{ row }">
           <!-- 管理员按钮 -->
+          <el-button
+            v-if="role==3"
+            type="text"
+            size="small"
+            style="font-size: 14px"
+            @click="moveClass(row, 'up')"
+          >上移</el-button>
+          <el-button
+            v-if="role==3"
+            type="text"
+            size="small"
+            style="font-size: 14px"
+            @click="moveClass(row, 'down')"
+          >下移</el-button>
           <el-button
             v-if="role==3"
             type="text"
@@ -177,7 +191,7 @@
 </template>
 
 <script>
-import { teacherJoinClass, teacherExitClass, classPaging, classDel, classUpdate, classAdd, removeTeacherFromGrade } from '@/api/class_'
+import { teacherJoinClass, teacherExitClass, classPaging, classDel, classUpdate, classAdd, removeTeacherFromGrade, classSort } from '@/api/class_'
 import { getRole } from '@/utils/jwtUtils'
 import pageLoading from '@/mixin/pageLoading'
 export default {
@@ -250,6 +264,17 @@ export default {
           })
         }
       })
+    },
+    async moveClass(row, direction) {
+      try {
+        const res = await classSort(row.id, direction)
+        if (res.code) {
+          this.$message.success(res.msg || '排序已更新')
+          this.getClassPage(this.pageNum, this.pageSize, this.formInline.searchTitle)
+        }
+      } catch (e) {
+        // 错误已由拦截器提示
+      }
     },
     // 分页查询
     async getClassPage(pageNum, pageSize, title = null) {

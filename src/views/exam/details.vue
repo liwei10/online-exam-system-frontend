@@ -37,9 +37,12 @@
 
       <el-form-item label="试卷总分">
         <span class="total-score">{{ totalScore }}</span>
-        <span class="inline-unit">分（实时计算）</span>
+        <span class="inline-unit">分（题目合计）</span>
+        <span class="inline-label">总分</span>
+        <el-input-number v-model="form.fullScore" :min="1" controls-position="right" />
+        <span class="inline-unit">分（必填，须等于题目合计）</span>
         <span class="inline-label">及格分</span>
-        <el-input-number v-model="form.passedScore" :min="0" :max="totalScore || 9999" controls-position="right" />
+        <el-input-number v-model="form.passedScore" :min="0" :max="form.fullScore || totalScore || 9999" controls-position="right" />
         <span class="inline-unit">分</span>
       </el-form-item>
 
@@ -307,6 +310,13 @@
           <span class="unit">分</span>
         </div>
         <div class="score-float-sub">共 {{ questionList.length }} 题 · 及格 {{ form.passedScore || 0 }} 分</div>
+        <div
+          v-if="Number(form.fullScore) > 0"
+          class="score-float-gap"
+          :class="scoreGapClass"
+        >
+          {{ scoreGapText }}
+        </div>
         <ul class="score-float-list">
           <li>
             <span>单选</span>
@@ -500,6 +510,7 @@ export default {
         title: '',
         classIds: [],
         passedScore: 0,
+        fullScore: 0,
         maxCount: 0,
         examDuration: 60,
         timeRange: [],
@@ -562,6 +573,23 @@ export default {
     },
     totalScore() {
       return this.questionList.reduce((sum, q) => sum + Number(q.score || 0), 0)
+    },
+    scoreGap() {
+      const full = Number(this.form.fullScore || 0)
+      if (full <= 0) return 0
+      return full - this.totalScore
+    },
+    scoreGapText() {
+      const gap = this.scoreGap
+      if (gap > 0) return `距总分还差 ${gap} 分`
+      if (gap < 0) return `已超出总分 ${Math.abs(gap)} 分`
+      return '已与总分一致'
+    },
+    scoreGapClass() {
+      const gap = this.scoreGap
+      if (gap > 0) return 'is-short'
+      if (gap < 0) return 'is-over'
+      return 'is-ok'
     },
     questionSections() {
       const order = [1, 2, 3, 4, 5]
@@ -794,6 +822,7 @@ export default {
           title: this.examInfo.title || '',
           classIds: Array.isArray(this.examInfo.gradeIds) ? [...this.examInfo.gradeIds] : [],
           passedScore: Number(this.examInfo.passedScore || 0),
+          fullScore: Number(this.examInfo.grossScore || 0),
           maxCount: Number(this.examInfo.maxCount || 0),
           examDuration: Number(this.examInfo.examDuration || 60),
           timeRange: this.examInfo.startTime && this.examInfo.endTime
@@ -939,6 +968,15 @@ export default {
       }
       if (Number(this.form.passedScore) > this.totalScore) {
         this.$message.warning('及格分不能大于试卷总分')
+        return
+      }
+      const declared = Number(this.form.fullScore)
+      if (!declared || declared <= 0) {
+        this.$message.warning('请填写总分')
+        return
+      }
+      if (declared !== this.totalScore) {
+        this.$message.warning(`总分须等于所选题目合计（当前合计 ${this.totalScore} 分，填写 ${declared} 分）`)
         return
       }
       this.saving = true
@@ -1113,6 +1151,29 @@ export default {
   margin-bottom: 12px;
   font-size: 12px;
   color: #94a3b8;
+}
+
+.score-float-gap {
+  margin: -4px 0 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.score-float-gap.is-short {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.score-float-gap.is-over {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.score-float-gap.is-ok {
+  color: #0f766e;
+  background: #f0fdfa;
 }
 
 .score-float-list {

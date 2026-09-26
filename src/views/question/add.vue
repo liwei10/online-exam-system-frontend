@@ -60,7 +60,32 @@
           <el-form-item label="题目内容" prop="content">
             <div v-if="postForm.quType === 5" class="blank-toolbar">
               <el-button type="primary" size="mini" plain @click="insertBlank">插入填空</el-button>
-              <el-button size="mini" plain @click="syncFillOptions">根据题干同步空位</el-button>
+              <el-tooltip placement="top" effect="light" popper-class="sync-blank-tooltip">
+                <div slot="content" class="sync-blank-tip-content">
+                  <p class="sync-blank-tip-title">「根据题干同步空位」用来按题干里的占位符，重新对齐下方答案行。</p>
+                  <p><strong>典型用法：</strong></p>
+                  <ul>
+                    <li>
+                      <strong>手改/粘贴题干：</strong>
+                      你直接在题干里写了 &#123;&#123;1&#125;&#125;、&#123;&#123;2&#125;&#125;，或粘贴了带空位的内容，下方答案行数量可能对不上。点一下同步，会按题干里的占位符个数生成/调整「第 1 空、第 2 空…」。
+                    </li>
+                    <li>
+                      <strong>尽量保留已填答案：</strong>
+                      同步时会按序号尽量保留原来的答案内容，而不是全部清空。
+                    </li>
+                  </ul>
+                  <p><strong>和「插入填空」的区别：</strong></p>
+                  <ul>
+                    <li><strong>插入填空：</strong>在光标处插入下一个 &#123;&#123;n&#125;&#125;，同时下方多一行答案。</li>
+                    <li><strong>根据题干同步空位：</strong>不往题干里插内容，只根据题干里已有的 &#123;&#123;n&#125;&#125; 对齐下方答案列表。</li>
+                  </ul>
+                  <p class="sync-blank-tip-foot">
+                    一般流程：用「插入填空」挖空即可；只有题干和答案行对不上（手改、粘贴、删乱了）时，再点「根据题干同步空位」。
+                  </p>
+                </div>
+                <el-button type="primary" size="mini" plain @click="syncFillOptions">根据题干同步空位</el-button>
+              </el-tooltip>
+              <el-button type="primary" size="mini" plain @click="previewVisible = true">预览</el-button>
               <span class="blank-tip">占位符形如 &#123;&#123;1&#125;&#125;，同义答案用 | 分隔，如 北京|北京市</span>
             </div>
             <el-input
@@ -216,6 +241,23 @@
         <el-button plain @click="onCancel">返回</el-button>
       </div>
     </el-form>
+
+    <el-dialog
+      title="填空题预览（学生端效果）"
+      :visible.sync="previewVisible"
+      width="680px"
+      append-to-body
+    >
+      <fill-blank-preview
+        :content="postForm.content"
+        :image="postForm.image"
+        :audio="postForm.audio"
+        :options="postForm.options"
+      />
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="previewVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -224,6 +266,7 @@ import { fetchDetail, quAdd, quDetail, quUpdate } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import FileUpload from '@/components/FileUpload'
 import AudioPlayer from '@/components/AudioPlayer'
+import FillBlankPreview from '@/components/FillBlankPreview'
 import pageLoading from '@/mixin/pageLoading'
 import {
   insertBlankAt,
@@ -235,7 +278,7 @@ import {
 export default {
 
   name: 'QuDetail',
-  components: { FileUpload, RepoSelect, AudioPlayer },
+  components: { FileUpload, RepoSelect, AudioPlayer, FillBlankPreview },
   mixins: [pageLoading],
 
   data() {
@@ -244,6 +287,7 @@ export default {
       quTypeDisabled: false,
       itemImage: true,
       contentCursor: { start: 0, end: 0 },
+      previewVisible: false,
 
       levels: [
         { value: 1, label: '很简单' },
@@ -551,16 +595,61 @@ export default {
   gap: 8px;
 }
 
+.blank-toolbar >>> .el-button,
+.blank-toolbar >>> .el-button + .el-button {
+  margin: 0;
+}
+
+.blank-toolbar >>> .el-tooltip {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
 .blank-tip {
   color: #94a3b8;
   font-size: 12px;
+  line-height: 28px;
+}
+
+.sync-blank-tip-content {
+  max-width: 420px;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.sync-blank-tip-title {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.sync-blank-tip-content p {
+  margin: 0 0 6px;
+}
+
+.sync-blank-tip-content ul {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+}
+
+.sync-blank-tip-content li {
+  margin-bottom: 4px;
+}
+
+.sync-blank-tip-foot {
+  margin-bottom: 0 !important;
+  color: #64748b;
 }
 
 .el-button--primary.is-plain {
   color: #0d9488;
   background: rgba(13, 148, 136, 0.08);
   border-color: rgba(13, 148, 136, 0.35);
-  margin-bottom: 16px;
+}
+
+.blank-toolbar .el-button--primary.is-plain {
+  margin: 0;
 }
 
 .el-form-item {

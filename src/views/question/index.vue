@@ -76,6 +76,7 @@
         <el-button type="primary" @click="importQu">确 定</el-button>
       </div>
     </el-dialog>
+
     <!-- table -->
 
     <el-table class="flex-list-table"
@@ -140,6 +141,13 @@
               @click="moveQu(row, 'down')"
             >下移</el-button>
             <el-button
+              v-if="row.quType == 5"
+              type="text"
+              size="small"
+              style="font-size: 14px"
+              @click="previewFillBlank(row)"
+            >预览</el-button>
+            <el-button
               type="text"
               size="small"
               style="font-size: 14px"
@@ -155,6 +163,27 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog
+      title="填空题预览（学生端效果）"
+      :visible.sync="previewVisible"
+      width="680px"
+      append-to-body
+      @closed="onPreviewClosed"
+    >
+      <div v-loading="previewLoading">
+        <fill-blank-preview
+          v-if="previewData"
+          :content="previewData.content"
+          :image="previewData.image"
+          :audio="previewData.audio"
+          :options="previewData.options"
+        />
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="previewVisible = false">关 闭</el-button>
+      </div>
+    </el-dialog>
 
     <!-- 分页 -->
     <div class="pagination-container">
@@ -198,13 +227,14 @@
 </template>
 
 <script>
-import { quPaging, quDel, quUpdate, importQue, quSort } from '@/api/question'
+import { quPaging, quDel, quUpdate, importQue, quSort, quDetail } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
+import FillBlankPreview from '@/components/FillBlankPreview'
 
 import pageLoading from '@/mixin/pageLoading'
 export default {
   mixins: [pageLoading],
-  components: { RepoSelect },
+  components: { RepoSelect, FillBlankPreview },
   data() {
     return {
       options: [
@@ -246,6 +276,9 @@ export default {
       selectedRepoSingleSearch: '',
       input: '',
       input1: '',
+      previewVisible: false,
+      previewLoading: false,
+      previewData: null,
       formInline: {
         user: '',
         region: ''
@@ -323,6 +356,33 @@ export default {
       this.saveListState()
       localStorage.setItem('quId', row.id)
       this.$router.push({ name: 'questions-add' })
+    },
+    async previewFillBlank(row) {
+      this.previewVisible = true
+      this.previewLoading = true
+      this.previewData = null
+      try {
+        const res = await quDetail(row.id)
+        if (res.code && res.data) {
+          this.previewData = {
+            content: res.data.content || '',
+            image: res.data.image || '',
+            audio: res.data.audio || '',
+            options: res.data.options || []
+          }
+        } else {
+          this.$message.error(res.msg || '加载预览失败')
+          this.previewVisible = false
+        }
+      } catch (e) {
+        this.previewVisible = false
+      } finally {
+        this.previewLoading = false
+      }
+    },
+    onPreviewClosed() {
+      this.previewData = null
+      this.previewLoading = false
     },
     async moveQu(row, direction) {
       if (!this.selectedRepoSingleSearch) {

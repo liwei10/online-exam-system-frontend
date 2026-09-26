@@ -105,6 +105,7 @@
           <span v-else-if="scope.row.quType == 2">多选题</span>
           <span v-else-if="scope.row.quType == 3">判断题</span>
           <span v-else-if="scope.row.quType == 4">简答题</span>
+          <span v-else-if="scope.row.quType == 5">填空题</span>
         </template>
       </el-table-column>
       <el-table-column label="难度" align="center" min-width="140">
@@ -226,6 +227,10 @@ export default {
         {
           value: 4,
           label: '简答题'
+        },
+        {
+          value: 5,
+          label: '填空题'
         }
       ],
       length: '',

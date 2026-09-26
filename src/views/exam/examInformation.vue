@@ -54,6 +54,11 @@
         <span style="margin-left: 5px; font-size: 14px">{{ data.saqCount }}</span>
         <span style="margin-left: 5px; font-size: 14px">({{ data.saqScore }})</span>
       </div>
+      <div v-if="data.fillCount != null" style="padding: 15px 0 0 50px; letter-spacing: 0.1em">
+        <span style="font-size: 14px">填空题数量:</span>
+        <span style="margin-left: 5px; font-size: 14px">{{ data.fillCount }}</span>
+        <span style="margin-left: 5px; font-size: 14px">({{ data.fillScore }}分)</span>
+      </div>
     </div>
     <!-- 按钮 -->
     <el-row class="ann">

@@ -164,7 +164,7 @@
                 </div>
               </template>
               <!-- eslint-disable-next-line vue/no-template-shadow -->
-              <template v-for="index in data">
+              <template v-for="(index, indexx) in (data || [])">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
                 <div v-if="index.quType === 4" :class="'index' + index">
                   <el-row :gutter="24">
@@ -224,6 +224,52 @@
                   <el-divider />
                 </div>
               </template>
+              <!-- eslint-disable-next-line vue/no-template-shadow -->
+              <template v-for="(index, indexx) in (data || [])">
+                <!-- eslint-disable-next-line vue/require-v-for-key -->
+                <div v-if="index.quType === 5" :class="'index-fill-' + indexx">
+                  <el-row :gutter="24">
+                    <el-col :span="20" style="text-align: left">
+                      <div class="qu_content">
+                        {{ indexx + 1 }}、{{ renderStemWithBlanks(index.title) }}
+                      </div>
+                      <div v-if="index.image != null && index.image != ''">
+                        <el-image
+                          :src="index.image"
+                          :preview-src="[index.image]"
+                          style="height: 100px"
+                        />
+                      </div>
+                      <audio-player :src="index.audio" />
+                      <div class="qu_analysis">
+                        <el-card>
+                          <div
+                            v-for="(ans, aIdx) in splitFillAnswers(index.myOption)"
+                            :key="'stu-' + aIdx"
+                            style="margin-top: 4px"
+                          >
+                            <span>考生答案（空{{ aIdx + 1 }}）：</span>
+                            <span>{{ ans || '（未作答）' }}</span>
+                          </div>
+                          <div
+                            v-for="(ans, aIdx) in splitFillAnswers(index.rightOption)"
+                            :key="'right-' + aIdx"
+                            style="margin-top: 8px"
+                          >
+                            <span>正确答案（空{{ aIdx + 1 }}）：</span>
+                            <span>{{ ans || '-' }}</span>
+                          </div>
+                          <div style="margin-top: 8px">
+                            <span>试题解析：</span>
+                            <span>{{ index.analyse }}</span>
+                          </div>
+                        </el-card>
+                      </div>
+                    </el-col>
+                  </el-row>
+                  <el-divider />
+                </div>
+              </template>
             </div>
             <el-divider />
           </el-card>
@@ -236,6 +282,7 @@
 <script>
 import { recordExamDetail } from "@/api/record";
 import AudioPlayer from "@/components/AudioPlayer";
+import { renderStemWithBlanks, splitAnswers } from "@/utils/blankPlaceholder";
 export default {
   name: "ExamProcess",
   components: { AudioPlayer },
@@ -261,6 +308,10 @@ export default {
     this.ExamDetail();
   },
   methods: {
+    renderStemWithBlanks,
+    splitFillAnswers(val) {
+      return splitAnswers(val)
+    },
     isCheck(myOption, sort) {
       const arr = myOption.split(",").map(Number); // 将字符串转换为数字数组
       if (arr.includes(sort)) {

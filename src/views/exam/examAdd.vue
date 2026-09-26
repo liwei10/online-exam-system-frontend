@@ -147,6 +147,32 @@
                 />
               </template>
             </el-table-column>
+            <el-table-column label="填空题数量" align="center" min-width="130">
+              <template v-slot="scope">
+                <div class="count-cell">
+                  <el-input-number
+                    v-model="scope.row.fillCount"
+                    :min="0"
+                    :max="scope.row.totalFill"
+                    :controls="false"
+                    class="count-input"
+                  />
+                  <span v-if="scope.row.totalFill != undefined" class="count-total">
+                    / {{ scope.row.totalFill }}
+                  </span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="填空题分数" align="center" min-width="100">
+              <template v-slot="scope">
+                <el-input-number
+                  v-model="scope.row.fillScore"
+                  :min="0"
+                  :controls="false"
+                  class="score-input"
+                />
+              </template>
+            </el-table-column>
             <!-- <el-table-column label="删除" align="center" width="80px">
             <template v-slot="scope">
               <el-button
@@ -205,6 +231,15 @@
           </el-form-item>
           <el-form-item label="考试时长(分钟)" prop="examDuration">
             <el-input-number v-model="postForm.examDuration" />
+          </el-form-item>
+          <el-form-item label="填空需批改">
+            <el-switch
+              v-model="postForm.fillNeedMark"
+              :active-value="1"
+              :inactive-value="0"
+              active-text="是"
+              inactive-text="否"
+            />
           </el-form-item>
           <el-form-item label="考试时间范围" prop="start">
             <el-date-picker
@@ -291,6 +326,8 @@ export default {
           judgeScore: 0,
           saqCount: 0,
           saqScore: 0,
+          fillCount: 0,
+          fillScore: 0,
         },
       ],
       // 已选择的题库
@@ -307,6 +344,7 @@ export default {
         departIds: [],
         // 初始化班级列表
         classIds: [],
+        fillNeedMark: 0,
       },
       rules: {
         title: [{ required: true, message: "考试名称不能为空！" }],
@@ -369,6 +407,9 @@ export default {
           if (item.saqCount > 0 && item.saqScore > 0) {
             totalScore += item.saqCount * item.saqScore;
           }
+          if (item.fillCount > 0 && item.fillScore > 0) {
+            totalScore += item.fillCount * item.fillScore;
+          }
           this.excludes.push(item.id);
         }
 
@@ -396,6 +437,8 @@ export default {
       this.repoList[0].judgeScore = 0;
       this.repoList[0].saqCount = 0;
       this.repoList[0].saqScore = 0;
+      this.repoList[0].fillCount = 0;
+      this.repoList[0].fillScore = 0;
       console.log(tab, event);
     },
     // 子组件选择的ids
@@ -414,6 +457,8 @@ export default {
       this.repoList[0].judgeScore = selectedIds.questionList.judgeScore;
       this.repoList[0].saqCount = selectedIds.questionList.saqCount;
       this.repoList[0].saqScore = selectedIds.questionList.saqScore;
+      this.repoList[0].fillCount = selectedIds.questionList.fillCount;
+      this.repoList[0].fillScore = selectedIds.questionList.fillScore;
       console.log("从子组件接收到的选中ID:", this.repoList);
       // 在这里你可以将选中的ID保存到父组件的数据中
       this.selectedQuestionIds = selectedIds;
@@ -512,6 +557,19 @@ export default {
               });
               return;
             }
+
+            if (
+              (repo.fillCount > 0 && repo.fillScore === 0) ||
+              (repo.fillCount === 0 && repo.fillScore > 0)
+            ) {
+              this.$notify({
+                title: "提示信息",
+                message: "题库第：[" + (i + 1) + "]项存在无效的填空题配置！",
+                type: "warning",
+                duration: 2000,
+              });
+              return;
+            }
           }
 
           this.$confirm("确实要提交保存吗？", "提示", {
@@ -604,6 +662,9 @@ export default {
         judgeScore: this.postForm.repoList[0].judgeScore,
         saqCount: this.postForm.repoList[0].saqCount,
         saqScore: this.postForm.repoList[0].saqScore,
+        fillCount: this.postForm.repoList[0].fillCount,
+        fillScore: this.postForm.repoList[0].fillScore,
+        fillNeedMark: this.postForm.fillNeedMark ? 1 : 0,
       };
       saveData(params).then((res) => {
         if (res.code) {
@@ -642,11 +703,13 @@ export default {
         row.totalMulti = e.multiNum;
         row.totalJudge = e.judgeNum;
         row.totalSaq = e.saqNum;
+        row.totalFill = e.fillNum;
       } else {
         row.totalRadio = 0;
         row.totalMulti = 0;
         row.totalJudge = 0;
         row.totalSaq = 0;
+        row.totalFill = 0;
       }
     },
   },

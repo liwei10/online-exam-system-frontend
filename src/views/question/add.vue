@@ -1,5 +1,12 @@
 <template>
-  <div class="app-container question-form-page">
+  <div
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="app-container question-form-page page-loading-host"
+  >
+    <h3 class="form-page-title">{{ pageTitle }}</h3>
     <el-form
       ref="postForm"
       :model="postForm"
@@ -45,14 +52,25 @@
 
         <div class="form-section">
           <h3 class="form-section-title">题目内容</h3>
-          <p class="form-section-desc">填写题干，可按需上传图片或音频</p>
+          <p class="form-section-desc">
+            {{ postForm.quType === 5
+              ? '填写题干，在需要挖空处点击「插入填空」；可上传图片或音频'
+              : '填写题干，可按需上传图片或音频' }}
+          </p>
           <el-form-item label="题目内容" prop="content">
+            <div v-if="postForm.quType === 5" class="blank-toolbar">
+              <el-button type="primary" size="mini" plain @click="insertBlank">插入填空</el-button>
+              <el-button size="mini" plain @click="syncFillOptions">根据题干同步空位</el-button>
+              <span class="blank-tip">占位符形如 &#123;&#123;1&#125;&#125;，同义答案用 | 分隔，如 北京|北京市</span>
+            </div>
             <el-input
+              ref="contentInput"
               v-model="postForm.content"
               type="textarea"
               :rows="4"
               resize="vertical"
               style="width: 1200px; max-width: 100%"
+              @blur="saveContentCursor"
             />
           </el-form-item>
 
@@ -92,13 +110,12 @@
 
       <el-card class="form-card options-card">
         <div class="form-section">
-          <h3 class="form-section-title">{{ postForm.quType == 4 ? '参考答案' : '选项答案' }}</h3>
-          <p class="form-section-desc">
-            {{ postForm.quType == 4 ? '填写简答题参考答案' : '勾选正确答案，可继续添加选项' }}
-          </p>
+          <h3 class="form-section-title">{{ optionsSectionTitle }}</h3>
+          <p class="form-section-desc">{{ optionsSectionDesc }}</p>
 
+          <!-- 单选/多选/判断 -->
           <div
-            v-if="postForm.quType != 4"
+            v-if="postForm.quType != 4 && postForm.quType != 5"
             class="filter-container"
           >
             <el-button
@@ -148,7 +165,9 @@
               </el-table-column>
             </el-table>
           </div>
-          <el-table 
+
+          <!-- 简答 -->
+          <el-table
             v-if="postForm.quType == 4"
             :data="postForm.options"
             :border="true"
@@ -157,6 +176,35 @@
             <el-table-column label="答案内容">
               <template v-slot="scope">
                 <el-input v-model="scope.row.content" type="textarea" />
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 填空 -->
+          <el-table
+            v-if="postForm.quType == 5"
+            :data="postForm.options"
+            :border="true"
+            style="width: 90%"
+          >
+            <el-table-column label="空序号" width="100" align="center">
+              <template v-slot="scope">
+                第 {{ scope.$index + 1 }} 空
+              </template>
+            </el-table-column>
+            <el-table-column label="标准答案（同义用 | 分隔）">
+              <template v-slot="scope">
+                <el-input v-model="scope.row.content" placeholder="如：北京|北京市" />
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" align="center" width="100px">
+              <template v-slot="scope">
+                <el-button
+                  type="danger"
+                  icon="el-icon-delete"
+                  circle
+                  @click="removeFillBlank(scope.$index)"
+                />
               </template>
             </el-table-column>
           </el-table>
@@ -176,17 +224,26 @@ import { fetchDetail, quAdd, quDetail, quUpdate } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import FileUpload from '@/components/FileUpload'
 import AudioPlayer from '@/components/AudioPlayer'
+import pageLoading from '@/mixin/pageLoading'
+import {
+  insertBlankAt,
+  syncOptionsFromContent,
+  validateBlanks,
+  parseBlankIndexes
+} from '@/utils/blankPlaceholder'
 
 export default {
 
   name: 'QuDetail',
   components: { FileUpload, RepoSelect, AudioPlayer },
+  mixins: [pageLoading],
 
   data() {
     return {
       quId: '',
       quTypeDisabled: false,
       itemImage: true,
+      contentCursor: { start: 0, end: 0 },
 
       levels: [
         { value: 1, label: '很简单' },
@@ -198,22 +255,11 @@ export default {
       levelTexts: ['很简单', '简单', '一般', '较难', '很难'],
 
       quTypes: [
-        {
-          value: 1,
-          label: '单选题'
-        },
-        {
-          value: 2,
-          label: '多选题'
-        },
-        {
-          value: 3,
-          label: '判断题'
-        },
-        {
-          value: 4,
-          label: '简答题'
-        }
+        { value: 1, label: '单选题' },
+        { value: 2, label: '多选题' },
+        { value: 3, label: '判断题' },
+        { value: 4, label: '简答题' },
+        { value: 5, label: '填空题' }
       ],
 
       postForm: {
@@ -223,26 +269,43 @@ export default {
       },
       rules: {
         content: [{ required: true, message: '题目内容不能为空！' }],
-
         quType: [{ required: true, message: '题目类型不能为空！' }],
-
         level: [{ required: true, message: '必须选择难度等级！' }],
-
         repoId: [{ required: true, message: '请先选择题库！' }]
       }
     }
   },
+  computed: {
+    isEdit() {
+      return !!this.quId
+    },
+    pageTitle() {
+      return this.isEdit ? '编辑题目' : '新增题目'
+    },
+    optionsSectionTitle() {
+      if (this.postForm.quType == 4) return '参考答案'
+      if (this.postForm.quType == 5) return '填空答案'
+      return '选项答案'
+    },
+    optionsSectionDesc() {
+      if (this.postForm.quType == 4) return '填写简答题参考答案'
+      if (this.postForm.quType == 5) return '按空填写标准答案，与题干占位符一一对应'
+      return '勾选正确答案，可继续添加选项'
+    }
+  },
   created() {
-    // 添加试题初始化
     const id = this.$route.params.id
-    if (typeof id  != 'undefined') {
+    if (typeof id !== 'undefined') {
       this.quTypeDisabled = true
       this.fetchData(id)
     }
-    // 编辑试题初始化
     this.quId = localStorage.getItem('quId')
     if (this.quId) {
+      this.quTypeDisabled = true
+      this.applyPageTitle()
       this.getQuDetail()
+    } else {
+      this.applyPageTitle()
     }
   },
   beforeDestroy() {
@@ -250,22 +313,35 @@ export default {
     this.postForm = {}
   },
   methods: {
-    // 获取单题详情
-    async getQuDetail() {
-      const res = await quDetail(this.quId)
-      if (res.code) {
-        res.data.options.forEach(item => {
-          if (item.isRight) {
-            item.isRight = true
-          } else {
-            item.isRight = false
-          }
-        })
-        this.postForm = res.data
-        if (!this.postForm.level) {
-          this.$set(this.postForm, 'level', 3)
-        }
+    applyPageTitle() {
+      const title = this.pageTitle
+      if (this.$route.meta) {
+        this.$route.meta.title = title
       }
+      document.title = `${title} - 在线考试系统`
+      this.$store.commit('menu/UPDATE_TAG_TITLE', {
+        path: this.$route.path,
+        title
+      })
+    },
+    async getQuDetail() {
+      await this.withPageLoading(async() => {
+        const res = await quDetail(this.quId)
+        if (res.code) {
+          res.data.options.forEach(item => {
+            item.isRight = !!item.isRight
+          })
+          this.postForm = res.data
+          if (!this.postForm.level) {
+            this.$set(this.postForm, 'level', 3)
+          }
+          if (this.postForm.quType === 5) {
+            this.postForm.options = (this.postForm.options || [])
+              .slice()
+              .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+          }
+        }
+      })
     },
     handleTypeChange(v) {
       this.postForm.options = []
@@ -273,7 +349,6 @@ export default {
         this.postForm.options.push({ isRight: true, content: '正确' })
         this.postForm.options.push({ isRight: false, content: '错误' })
       }
-
       if (v === 1 || v === 2) {
         this.postForm.options.push({ isRight: false, content: '' })
         this.postForm.options.push({ isRight: false, content: '' })
@@ -283,21 +358,76 @@ export default {
       if (v === 4) {
         this.postForm.options.push({ isRight: true, content: '' })
       }
+      if (v === 5) {
+        this.postForm.options = []
+      }
     },
-
-    // 添加子项
+    saveContentCursor(e) {
+      const el = e && e.target
+      if (el) {
+        this.contentCursor = {
+          start: el.selectionStart || 0,
+          end: el.selectionEnd || 0
+        }
+      }
+    },
+    insertBlank() {
+      const text = this.postForm.content || ''
+      const { start, end } = this.contentCursor
+      const result = insertBlankAt(text, start, end)
+      this.$set(this.postForm, 'content', result.content)
+      this.postForm.options.push({
+        isRight: true,
+        content: '',
+        sort: result.nextIndex
+      })
+      this.contentCursor = {
+        start: start + result.token.length,
+        end: start + result.token.length
+      }
+      this.$nextTick(() => {
+        const textarea = this.$refs.contentInput && this.$refs.contentInput.$refs.textarea
+        if (textarea) {
+          textarea.focus()
+          textarea.setSelectionRange(this.contentCursor.start, this.contentCursor.end)
+        }
+      })
+    },
+    syncFillOptions() {
+      this.postForm.options = syncOptionsFromContent(this.postForm.content, this.postForm.options)
+      this.$message.success(`已同步 ${this.postForm.options.length} 个填空`)
+    },
+    removeFillBlank(index) {
+      const indexes = parseBlankIndexes(this.postForm.content || '')
+      const target = indexes[index]
+      if (target != null) {
+        const re = new RegExp(`\\{\\{${target}\\}\\}`, 'g')
+        let content = (this.postForm.content || '').replace(re, '')
+        // 重编号剩余占位符
+        const remain = parseBlankIndexes(content)
+        remain.forEach((oldIdx, i) => {
+          const neu = i + 1
+          if (oldIdx !== neu) {
+            content = content.replace(new RegExp(`\\{\\{${oldIdx}\\}\\}`, 'g'), `{{TMP${neu}}}`)
+          }
+        })
+        content = content.replace(/\{\{TMP(\d+)\}\}/g, '{{$1}}')
+        this.$set(this.postForm, 'content', content)
+      }
+      this.postForm.options.splice(index, 1)
+      this.postForm.options.forEach((opt, i) => {
+        opt.sort = i + 1
+      })
+    },
     handleAdd() {
       this.postForm.options.push({ isRight: false, content: '' })
     },
-
     removeItem(index) {
       const actualIndex = this.postForm.options.findIndex((option, idx) => {
         return idx === index && !option.isDeleted
       })
       if (actualIndex !== -1) {
-        // 将选项标记为已删除
         this.postForm.options[actualIndex].isDeleted = 1
-        // 更新选项的排序
         this.postForm.options.forEach((option, idx) => {
           if (!option.isDeleted) {
             option.sort = idx
@@ -305,17 +435,14 @@ export default {
         })
       }
     },
-
     fetchData(id) {
-      fetchDetail(id).then((response) => {
+      this.withPageLoading(async() => {
+        const response = await fetchDetail(id)
         this.postForm = response.data
       })
     },
     submitForm() {
-      (JSON.stringify(this.postForm))
-
       let rightCount = 0
-
       this.postForm.options.forEach(function(item) {
         if (item.isRight) {
           rightCount += 1
@@ -323,34 +450,32 @@ export default {
       })
 
       if (this.postForm.quType === 1) {
-        if (rightCount  != 1) {
-          this.$message({
-            message: '单选题答案只能有一个',
-            type: 'warning'
-          })
-
+        if (rightCount !== 1) {
+          this.$message({ message: '单选题答案只能有一个', type: 'warning' })
           return
         }
       }
-
       if (this.postForm.quType === 2) {
         if (rightCount < 2) {
-          this.$message({
-            message: '多选题至少要有两个正确答案！',
-            type: 'warning'
-          })
-
+          this.$message({ message: '多选题至少要有两个正确答案！', type: 'warning' })
           return
         }
       }
-
       if (this.postForm.quType === 3) {
-        if (rightCount  != 1) {
-          this.$message({
-            message: '判断题只能有一个正确项！',
-            type: 'warning'
-          })
-
+        if (rightCount !== 1) {
+          this.$message({ message: '判断题只能有一个正确项！', type: 'warning' })
+          return
+        }
+      }
+      if (this.postForm.quType === 5) {
+        const err = validateBlanks(this.postForm.content, (this.postForm.options || []).length)
+        if (err) {
+          this.$message({ message: err, type: 'warning' })
+          return
+        }
+        const empty = (this.postForm.options || []).some(o => !o.content || !String(o.content).trim())
+        if (empty) {
+          this.$message({ message: '填空题每空答案不能为空', type: 'warning' })
           return
         }
       }
@@ -359,56 +484,31 @@ export default {
         if (!valid) {
           return
         }
-        // 选项是否正确转型
         for (let i = 0; i < this.postForm.options.length; i++) {
           const option = this.postForm.options[i]
-          if (option.isRight) {
+          option.isRight = option.isRight ? 1 : 0
+          if (this.postForm.quType === 5) {
             option.isRight = 1
-          } else {
-            option.isRight = 0
+            option.sort = i + 1
           }
         }
 
         if (this.quId) {
-          // 修改试题
           quUpdate(this.quId, this.postForm).then(res => {
             if (res.code) {
-              this.$notify({
-                title: '成功',
-                message: `${res.msg}`,
-                type: 'success',
-                duration: 2000
-              })
+              this.$notify({ title: '成功', message: `${res.msg}`, type: 'success', duration: 2000 })
               this.$router.push({ name: 'questions-management' })
             } else {
-              this.$notify({
-                title: '失败',
-                message: `${res.msg}`,
-                type: 'error',
-                duration: 2000
-              })
+              this.$notify({ title: '失败', message: `${res.msg}`, type: 'error', duration: 2000 })
             }
           })
         } else {
-          // 添加试题
           quAdd(this.postForm).then((response) => {
-            this.postForm = response.data
             if (response.code) {
-              this.$notify({
-                title: '成功',
-                message: '试题保存成功！',
-                type: 'success',
-                duration: 2000
-              })
-
+              this.$notify({ title: '成功', message: '试题保存成功！', type: 'success', duration: 2000 })
               this.$router.push({ name: 'questions-management' })
             } else {
-              this.$notify({
-                title: '失败',
-                message: `${response.msg}`,
-                type: 'error',
-                duration: 2000
-              })
+              this.$notify({ title: '失败', message: `${response.msg}`, type: 'error', duration: 2000 })
             }
           })
         }
@@ -422,6 +522,13 @@ export default {
 </script>
 
 <style scoped>
+.form-page-title {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
 .question-form-page .form-card {
   margin-bottom: 16px;
   border-radius: 16px;
@@ -434,6 +541,19 @@ export default {
 .form-actions {
   margin-top: 8px;
   padding: 4px 0 12px;
+}
+
+.blank-toolbar {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.blank-tip {
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 .el-button--primary.is-plain {

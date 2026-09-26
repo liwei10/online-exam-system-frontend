@@ -106,6 +106,42 @@
                     <el-divider />
                   </div>
                 </template>
+
+                <!-- 填空题部分 -->
+                <template v-for="(item, index) in recordData">
+                  <div
+                    v-if="item.quType === 5"
+                    :key="'fill-' + index"
+                    :class="'index' + index"
+                  >
+                    <el-row :gutter="24">
+                      <el-col :span="20" style="text-align: left">
+                        <div>
+                          <div class="qu_content">
+                            <span class="qu_num">{{ index + 1 }}. </span>{{ renderStemWithBlanks(item.title) }}
+                          </div>
+                          <div v-if="item.image != null && item.image != ''">
+                            <el-image :src="item.image" style="max-width: 200px;" />
+                          </div>
+                          <audio-player :src="item.audio" />
+                        </div>
+                        <div class="qu_analysis" style="margin-top: 10px">
+                          <el-card>
+                            <div
+                              v-for="(ans, aIdx) in splitFillAnswers(item.myOption)"
+                              :key="'fill-ans-' + aIdx"
+                              style="margin-top: 4px"
+                            >
+                              <span>空{{ aIdx + 1 }}：</span>
+                              <span>{{ ans || '（未作答）' }}</span>
+                            </div>
+                          </el-card>
+                        </div>
+                      </el-col>
+                    </el-row>
+                    <el-divider />
+                  </div>
+                </template>
               </div>
               <el-divider />
             </el-card>
@@ -122,6 +158,7 @@
 
 <script>
 import AudioPlayer from '@/components/AudioPlayer'
+import { renderStemWithBlanks, splitAnswers } from '@/utils/blankPlaceholder'
 export default {
   name: 'ExamSummaryDialog',
   components: { AudioPlayer },
@@ -146,6 +183,10 @@ export default {
     }
   },
   methods: {
+    renderStemWithBlanks,
+    splitFillAnswers(myOption) {
+      return splitAnswers(myOption)
+    },
     // 检查选项是否被选中
     isCheck(myOption, sort) {
       if (!myOption) return false

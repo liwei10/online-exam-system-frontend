@@ -71,6 +71,16 @@ const mutations = {
   },
   CLOSE_SIDEBAR: (state) => {
     state.tags = []
+  },
+  // 更新当前路径页签标题（新增/编辑同路由区分）
+  UPDATE_TAG_TITLE(state, { path, title }) {
+    if (!path || !title) return
+    state.tags.forEach(item => {
+      if (item.path === path) {
+        item.title = title
+      }
+    })
+    sessionStorage.setItem('TAGS', JSON.stringify(state.tags))
   }
 }
 

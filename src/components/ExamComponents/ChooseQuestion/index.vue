@@ -50,6 +50,9 @@
       <el-form-item label="简答分数" v-if="shortAnswerQuestions">
         <el-input v-model="questionList.saqScore" placeholder="输入试题名称" @change = "scoreFun"/>
       </el-form-item>
+      <el-form-item label="填空分数" v-if="fillBlankQuestions">
+        <el-input v-model="questionList.fillScore" placeholder="输入试题名称" @change="scoreFun"/>
+      </el-form-item>
     </el-form>
     <!-- table -->
 
@@ -83,6 +86,7 @@
           <span v-else-if="scope.row.quType == 2">多选题</span>
           <span v-else-if="scope.row.quType == 3">判断题</span>
           <span v-else-if="scope.row.quType == 4">简答题</span>
+          <span v-else-if="scope.row.quType == 5">填空题</span>
         </template>
       </el-table-column>
       <el-table-column prop="repoTitle" label="所属题库" align="center" />
@@ -116,6 +120,7 @@ export default {
       multipleChoiceQuestions: false,
       trueOrFalseQuestions: false,
       shortAnswerQuestions: false,
+      fillBlankQuestions: false,
 
       options: [
         {
@@ -137,6 +142,10 @@ export default {
         {
           value: 4,
           label: "简答题",
+        },
+        {
+          value: 5,
+          label: "填空题",
         },
       ],
       length: "",
@@ -166,6 +175,8 @@ export default {
         judgeScore: 0,
         saqCount: 0,
         saqScore: 0,
+        fillCount: 0,
+        fillScore: 0,
       },
       cancle() {},
       dialogTableVisible: false,
@@ -280,11 +291,13 @@ export default {
       this.questionList.multiCount = 0;
       this.questionList.judgeCount = 0;
       this.questionList.saqCount = 0;
+      this.questionList.fillCount = 0;
 
       this.singleChoiceQuestions = false;
       this.multipleChoiceQuestions = false;
       this.trueOrFalseQuestions = false;
       this.shortAnswerQuestions = false;
+      this.fillBlankQuestions = false;
       this.selectedRows.forEach((item) => {
         if (item.quType == 1) {
           this.questionList.radioCount += 1;
@@ -302,6 +315,10 @@ export default {
           this.questionList.saqCount += 1;
           this.shortAnswerQuestions = true;
         }
+        if (item.quType == 5) {
+          this.questionList.fillCount += 1;
+          this.fillBlankQuestions = true;
+        }
       });
       if (this.questionList.radioCount === 0) {
         this.questionList.radioScore = 0;
@@ -314,6 +331,9 @@ export default {
       }
       if (this.questionList.saqCount === 0) {
         this.questionList.saqScore = 0;
+      }
+      if (this.questionList.fillCount === 0) {
+        this.questionList.fillScore = 0;
       }
       const data = {
         selectedRows: this.selectedRows,
@@ -350,11 +370,13 @@ export default {
       this.questionList.multiCount = 0;
       this.questionList.judgeCount = 0;
       this.questionList.saqCount = 0;
+      this.questionList.fillCount = 0;
 
       this.singleChoiceQuestions = false;
       this.multipleChoiceQuestions = false;
       this.trueOrFalseQuestions = false;
       this.shortAnswerQuestions = false;
+      this.fillBlankQuestions = false;
       this.selectedRows.forEach((item) => {
         if (item.quType == 1) {
           this.questionList.radioCount += 1;
@@ -372,6 +394,10 @@ export default {
           this.questionList.saqCount += 1;
           this.shortAnswerQuestions = true;
         }
+        if (item.quType == 5) {
+          this.questionList.fillCount += 1;
+          this.fillBlankQuestions = true;
+        }
       });
       if (this.questionList.radioCount === 0) {
         this.questionList.radioScore = 0;
@@ -384,6 +410,9 @@ export default {
       }
       if (this.questionList.saqCount === 0) {
         this.questionList.saqScore = 0;
+      }
+      if (this.questionList.fillCount === 0) {
+        this.questionList.fillScore = 0;
       }
 
       const data = {

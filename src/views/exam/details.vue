@@ -113,8 +113,33 @@
               @click="applyDefaultScore(4)"
             >同步到本类</el-button>
           </span>
+          <span class="score-item">
+            填空
+            <el-input-number
+              v-model="scores.fillScore"
+              :min="0"
+              :disabled="!typeCounts.fill"
+              controls-position="right"
+              size="mini"
+            />
+            分
+            <el-button
+              type="text"
+              size="mini"
+              :disabled="!typeCounts.fill"
+              @click="applyDefaultScore(5)"
+            >同步到本类</el-button>
+          </span>
         </div>
         <div class="form-tip">默认分用于新加题目；可在每道题上单独改分。点「同步到本类」会覆盖该类全部题目分值。</div>
+      </el-form-item>
+
+      <el-form-item v-if="typeCounts.fill" label="填空需批改">
+        <el-switch
+          v-model="form.fillNeedMark"
+          active-text="需人工批改"
+          inactive-text="自动判分"
+        />
       </el-form-item>
 
       <el-form-item label="考试时间" required>
@@ -186,7 +211,7 @@
                 </span>
                 <el-button type="danger" size="mini" plain @click="removeQuestion(item)">删除</el-button>
               </div>
-              <div class="question-body question-content">{{ item.title }}</div>
+              <div class="question-body question-content">{{ item.quType === 5 ? renderStemWithBlanks(item.title) : item.title }}</div>
 
               <div v-if="item.image" class="media-wrap">
                 <el-image
@@ -219,8 +244,14 @@
                 </div>
               </div>
 
+              <div v-if="item.quType === 5" class="meta-block">
+                <div class="meta-line">
+                  <span class="meta-label">参考答案：</span>{{ item.rightOption || '暂无' }}
+                </div>
+              </div>
+
               <div class="meta-block">
-                <div v-if="item.quType !== 4" class="meta-line">
+                <div v-if="item.quType !== 4 && item.quType !== 5" class="meta-line">
                   <span class="meta-label">正确答案：</span>
                   {{ numberToLetter(item.rightOption) || item.rightOption || '-' }}
                 </div>
@@ -300,6 +331,12 @@
             <b>{{ typeCounts.saq }}</b>
             <em>题</em>
             <strong>{{ typeScoreSum(4) }}</strong>
+          </li>
+          <li>
+            <span>填空</span>
+            <b>{{ typeCounts.fill }}</b>
+            <em>题</em>
+            <strong>{{ typeScoreSum(5) }}</strong>
           </li>
         </ul>
         <el-button
@@ -437,12 +474,14 @@ import { quPaging, quDetail } from '@/api/question'
 import { fetchClasses } from '@/api/class_'
 import AudioPlayer from '@/components/AudioPlayer'
 import RepoSelect from '@/components/RepoSelect'
+import { renderStemWithBlanks, joinAnswers } from '@/utils/blankPlaceholder'
 
 const QU_TYPE_MAP = {
   1: '单选题',
   2: '多选题',
   3: '判断题',
-  4: '简答题'
+  4: '简答题',
+  5: '填空题'
 }
 
 export default {
@@ -463,13 +502,15 @@ export default {
         passedScore: 0,
         maxCount: 0,
         examDuration: 60,
-        timeRange: []
+        timeRange: [],
+        fillNeedMark: false
       },
       scores: {
         radioScore: 0,
         multiScore: 0,
         judgeScore: 0,
-        saqScore: 0
+        saqScore: 0,
+        fillScore: 0
       },
       activeSections: [],
       floatCollapsed: false,
@@ -497,7 +538,8 @@ export default {
         { value: 1, label: '单选题' },
         { value: 2, label: '多选题' },
         { value: 3, label: '判断题' },
-        { value: 4, label: '简答题' }
+        { value: 4, label: '简答题' },
+        { value: 5, label: '填空题' }
       ]
     }
   },
@@ -514,16 +556,17 @@ export default {
         radio: this.questionList.filter((q) => q.quType === 1).length,
         multi: this.questionList.filter((q) => q.quType === 2).length,
         judge: this.questionList.filter((q) => q.quType === 3).length,
-        saq: this.questionList.filter((q) => q.quType === 4).length
+        saq: this.questionList.filter((q) => q.quType === 4).length,
+        fill: this.questionList.filter((q) => q.quType === 5).length
       }
     },
     totalScore() {
       return this.questionList.reduce((sum, q) => sum + Number(q.score || 0), 0)
     },
     questionSections() {
-      const order = [1, 2, 3, 4]
+      const order = [1, 2, 3, 4, 5]
       const present = order.filter((type) => this.questionList.some((q) => q.quType === type))
-      // 始终至少展示已有题型；若完全为空则展示四个空标题便于添加
+      // 始终至少展示已有题型；若完全为空则展示全部空标题便于添加
       const types = present.length ? present : order
       return types.map((type) => ({
         type,
@@ -533,7 +576,7 @@ export default {
     },
     missingTypes() {
       if (!this.questionList.length) return []
-      return [1, 2, 3, 4].filter((t) => !this.questionList.some((q) => q.quType === t))
+      return [1, 2, 3, 4, 5].filter((t) => !this.questionList.some((q) => q.quType === t))
     }
   },
   watch: {
@@ -569,6 +612,9 @@ export default {
     },
     'typeCounts.saq'(n) {
       if (!n) this.scores.saqScore = 0
+    },
+    'typeCounts.fill'(n) {
+      if (!n) this.scores.fillScore = 0
     }
   },
   created() {
@@ -592,10 +638,12 @@ export default {
         1: this.scores.radioScore,
         2: this.scores.multiScore,
         3: this.scores.judgeScore,
-        4: this.scores.saqScore
+        4: this.scores.saqScore,
+        5: this.scores.fillScore
       }
       return Number(map[quType] || 0)
     },
+    renderStemWithBlanks,
     applyDefaultScore(quType) {
       const score = this.defaultScoreByType(quType)
       this.questionList.forEach((q) => {
@@ -686,6 +734,9 @@ export default {
     buildRightOption(quType, options) {
       if (!options || !options.length) return ''
       if (quType === 4) return options[0].content || ''
+      if (quType === 5) {
+        return joinAnswers(options.map((o) => (o && o.content != null ? o.content : '')))
+      }
       return options
         .filter((o) => o.isRight === 1 || o.isRight === true)
         .map((o) => o.sort)
@@ -706,7 +757,7 @@ export default {
         image: detail.image,
         audio: detail.audio,
         analyse: detail.analysis || detail.analyse,
-        option: detail.quType === 4 ? null : options,
+        option: (detail.quType === 4) ? null : options,
         rightOption: this.buildRightOption(detail.quType, options)
       }
     },
@@ -736,7 +787,8 @@ export default {
           radioScore: Number(this.examInfo.radioScore || 0),
           multiScore: Number(this.examInfo.multiScore || 0),
           judgeScore: Number(this.examInfo.judgeScore || 0),
-          saqScore: Number(this.examInfo.saqScore || 0)
+          saqScore: Number(this.examInfo.saqScore || 0),
+          fillScore: Number(this.examInfo.fillScore || 0)
         }
         this.form = {
           title: this.examInfo.title || '',
@@ -746,7 +798,8 @@ export default {
           examDuration: Number(this.examInfo.examDuration || 60),
           timeRange: this.examInfo.startTime && this.examInfo.endTime
             ? [this.normalizeTime(this.examInfo.startTime), this.normalizeTime(this.examInfo.endTime)]
-            : []
+            : [],
+          fillNeedMark: this.examInfo.fillNeedMark === 1 || this.examInfo.fillNeedMark === true
         }
         this.syncSelectedClasses(this.examInfo.gradeIds, this.examInfo.gradeNames)
       } catch (e) {
@@ -894,7 +947,10 @@ export default {
           radioScore: Number(this.scores.radioScore || 0),
           multiScore: Number(this.scores.multiScore || 0),
           judgeScore: Number(this.scores.judgeScore || 0),
-          saqScore: Number(this.scores.saqScore || 0)
+          saqScore: Number(this.scores.saqScore || 0),
+          fillScore: Number(this.scores.fillScore || 0),
+          fillCount: Number(this.typeCounts.fill || 0),
+          fillNeedMark: this.form.fillNeedMark ? 1 : 0
         }
         const quScores = this.questionList
           .filter((q) => q.questionId)

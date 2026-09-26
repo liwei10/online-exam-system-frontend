@@ -110,6 +110,17 @@
                 >{{ index + 1 }}</el-tag>
               </el-row>
             </div>
+            <div v-if="paperData.fillList != undefined && paperData.fillList.length > 0">
+              <p class="card-title">填空题</p>
+              <el-row :gutter="24" class="card-line">
+                <el-tag
+                  v-for="(item, index) in paperData.fillList"
+                  :key="index"
+                  :type="cardItemClass(item.exercised, item.quId, item.isRight)"
+                  @click="selectQuId(item, index)"
+                >{{ index + 1 }}</el-tag>
+              </el-row>
+            </div>
           </div>
 
           <!-- </div> -->
@@ -123,9 +134,10 @@
               'single-choice': quDetail.quType === 1,
               'multiple-choice': quDetail.quType === 2,
               'judgment': quDetail.quType === 3,
-              'short-answer': quDetail.quType === 4
+              'short-answer': quDetail.quType === 4,
+              'fill-blank': quDetail.quType === 5
             }]">{{ shouQuType(quDetail.quType) }}</span>
-            {{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.{{ quDetail.content }}
+            {{ number == 1 ? curTypeIndex + 1 : currentQuIndex + 1 }}.{{ quDetail.quType === 5 ? renderStemWithBlanks(quDetail.content) : quDetail.content }}
           </p>
           <p v-if="quDetail.image != null && quDetail.image != ''">
             <el-image 
@@ -179,6 +191,21 @@
               :clearable="true"
               placeholder="请输入答案"
             />
+          </div>
+          <div v-if="quDetail.quType === 5" class="fill-blank-area">
+            <div
+              v-for="(ans, idx) in fillAnswers"
+              :key="'ex-fill-' + idx"
+              class="fill-blank-row"
+            >
+              <span class="fill-blank-label">空{{ idx + 1 }}：</span>
+              <el-input
+                v-model="fillAnswers[idx]"
+                :disabled="isAnswered"
+                placeholder="请输入该空答案"
+                clearable
+              />
+            </div>
           </div>
 
           <div v-if="rightQuAnswer.data != null">
@@ -266,6 +293,12 @@
 import { getQuestion, getQuestionDetail, submitAnswer, getAnswerInfo } from '@/api/exercise'
 import { Loading } from 'element-ui'
 import AudioPlayer from '@/components/AudioPlayer'
+import {
+  renderStemWithBlanks,
+  splitAnswers,
+  joinAnswers,
+  countBlanks
+} from '@/utils/blankPlaceholder'
 
 export default {
   name: 'ExamProcess',
@@ -305,10 +338,12 @@ export default {
         radioList: [],
         multiList: [],
         judgeList: [],
-        saqList: []
+        saqList: [],
+        fillList: []
       },
       radioValue: '',
       multiValue: [],
+      fillAnswers: [],
       answeredIds: [],
       debounceFlag: false,
       isAnswered: false,
@@ -326,7 +361,8 @@ export default {
         return this.paperData.radioList.length +
                this.paperData.multiList.length +
                this.paperData.judgeList.length +
-               this.paperData.saqList.length
+               this.paperData.saqList.length +
+               this.paperData.fillList.length
       }
     },
     // 统计回答正确的题数
@@ -338,7 +374,8 @@ export default {
         list = this.paperData.radioList.concat(
           this.paperData.multiList,
           this.paperData.judgeList,
-          this.paperData.saqList
+          this.paperData.saqList,
+          this.paperData.fillList
         )
       }
       return list.filter(item => item.isRight).length
@@ -352,7 +389,8 @@ export default {
         list = this.paperData.radioList.concat(
           this.paperData.multiList,
           this.paperData.judgeList,
-          this.paperData.saqList
+          this.paperData.saqList,
+          this.paperData.fillList
         )
       }
       return list.filter(item => item.exercised && !item.isRight).length
@@ -370,7 +408,8 @@ export default {
         list = this.paperData.radioList.concat(
           this.paperData.multiList,
           this.paperData.judgeList,
-          this.paperData.saqList
+          this.paperData.saqList,
+          this.paperData.fillList
         )
       }
       // 筛选出所有已作答的题目
@@ -438,9 +477,20 @@ export default {
     resetAnswerState() {
       this.radioValue = ''
       this.multiValue = []
+      this.fillAnswers = []
       this.rightQuAnswer = {}
       this.showAnalysis = 0
       this.isAnswered = false
+    },
+    initFillAnswers(detail, savedAnswer) {
+      const blankCount = countBlanks(detail && detail.content) ||
+        ((detail && detail.options && detail.options.length) || 1)
+      const parts = splitAnswers(savedAnswer || '')
+      const next = []
+      for (let i = 0; i < blankCount; i++) {
+        next.push(parts[i] != null ? parts[i] : '')
+      }
+      this.fillAnswers = next
     },
     // 处理题型切换逻辑
     handleQuestionTypeSwitch() {
@@ -448,7 +498,8 @@ export default {
         1: this.paperData.radioList,
         2: this.paperData.multiList,
         3: this.paperData.judgeList,
-        4: this.paperData.saqList
+        4: this.paperData.saqList,
+        5: this.paperData.fillList
       }[this.curListIndex]
 
       if (this.curTypeIndex < currentList.length - 1) {
@@ -459,7 +510,8 @@ export default {
           1: { index: 2, list: this.paperData.multiList },
           2: { index: 3, list: this.paperData.judgeList },
           3: { index: 4, list: this.paperData.saqList },
-          4: { index: 1, list: this.paperData.radioList }
+          4: { index: 5, list: this.paperData.fillList },
+          5: { index: 1, list: this.paperData.radioList }
         }
         const nextType = nextTypeMap[this.curListIndex]
         this.curListIndex = nextType.index
@@ -500,6 +552,7 @@ export default {
         this.paperData.multiList = []
         this.paperData.judgeList = []
         this.paperData.saqList = []
+        this.paperData.fillList = []
 
         if (this.number === 1) {
           this.quList.forEach((item) => {
@@ -511,6 +564,8 @@ export default {
               this.paperData.judgeList.push(item)
             } else if (item.quType === 4) {
               this.paperData.saqList.push(item)
+            } else if (item.quType === 5) {
+              this.paperData.fillList.push(item)
             }
           })
           this.quList = []
@@ -532,6 +587,7 @@ export default {
         this.paperData.multiList = []
         this.paperData.judgeList = []
         this.paperData.saqList = []
+        this.paperData.fillList = []
         if (this.number === 1) {
           this.quList.forEach((item) => {
             if (item.quType === 1) {
@@ -542,6 +598,8 @@ export default {
               this.paperData.judgeList.push(item)
             } else if (item.quType === 4) {
               this.paperData.saqList.push(item)
+            } else if (item.quType === 5) {
+              this.paperData.fillList.push(item)
             }
           })
           this.quList = []
@@ -596,6 +654,10 @@ export default {
         const opts = (this.rightQuAnswer.data && this.rightQuAnswer.data.options) || []
         res = opts.length ? opts[0].content : ''
       }
+      if (this.quDetail.quType === 5) {
+        const opts = (this.rightQuAnswer.data && this.rightQuAnswer.data.options) || []
+        res = opts.map((o, i) => `空${i + 1}:${o.content || ''}`).join('；')
+      }
 
       return res
     },
@@ -613,6 +675,8 @@ export default {
         this.curListIndex = 3
       } else if (item.quType === 4) {
         this.curListIndex = 4
+      } else if (item.quType === 5) {
+        this.curListIndex = 5
       }
       this.getCurrentQuDetial()
     },
@@ -620,20 +684,24 @@ export default {
       this.isAnswered = false
       const loading = Loading.service({
         text: '正在查询请等待',
-        background: 'rgba(0, 0, 0, 0.7)'
+        background: 'rgba(232, 242, 239, 0.72)'
       })
-      if (this.number === 0) {
-        setTimeout(() => {
-          getQuestionDetail(this.quList[this.currentQuIndex].quId).then((res) => {
-            this.quDetail = res.data
-          })
-        }, 100)
-      } else if (this.number === 1) {
-        getQuestionDetail(this.curQuId).then((res) => {
+      try {
+        let res
+        if (this.number === 0) {
+          res = await getQuestionDetail(this.quList[this.currentQuIndex].quId)
+        } else if (this.number === 1) {
+          res = await getQuestionDetail(this.curQuId)
+        }
+        if (res && res.data) {
           this.quDetail = res.data
-        })
+          if (res.data.quType === 5) {
+            this.initFillAnswers(res.data, '')
+          }
+        }
+      } finally {
+        loading.close()
       }
-      loading.close()
     },
 
     // 答题卡样式
@@ -677,7 +745,7 @@ export default {
       // alert(this.rightQuAnswer);
       const loading = Loading.service({
         text: '正在查询请等待',
-        background: 'rgba(0, 0, 0, 0.7)'
+        background: 'rgba(232, 242, 239, 0.72)'
       })
 
       // this.fillAnswer();
@@ -700,12 +768,14 @@ export default {
         return '判断题'
       } else if (type === 4) {
         return '简答题'
+      } else if (type === 5) {
+        return '填空题'
       }
     },
     async handNext() {
       const loading = Loading.service({
         text: '正在查询请等待',
-        background: 'rgba(0, 0, 0, 0.7)'
+        background: 'rgba(232, 242, 239, 0.72)'
       })
       try {
         if (this.nextText === '结束刷题') {
@@ -752,6 +822,9 @@ export default {
         answer = (this.multiValue && this.multiValue.length) ? this.multiValue.join(',') : ''
       } else if (quType === 4) {
         answer = this.radioValue != null ? String(this.radioValue) : ''
+      } else if (quType === 5) {
+        const hasFill = (this.fillAnswers || []).some(a => a != null && String(a).trim() !== '')
+        answer = hasFill ? joinAnswers(this.fillAnswers) : ''
       }
       const params = {
         repoId: this.quDetail.repoId || this.repoId,
@@ -781,14 +854,14 @@ export default {
     async handPrevious() {
       const loading = Loading.service({
         text: '正在查询请等待',
-        background: 'rgba(0, 0, 0, 0.7)'
+        background: 'rgba(232, 242, 239, 0.72)'
       })
       this.resetAnswerState()
       if (this.currentQuIndex > 0) {
         this.currentQuIndex--
         this.showButton()
-        this.getCurrentQuDetial()
-        
+        await this.getCurrentQuDetial()
+
         // 检查上一题是否已作答
         const previousQuestion = this.quList[this.currentQuIndex]
         if (previousQuestion && previousQuestion.exercised) {
@@ -803,6 +876,8 @@ export default {
                 } else if (res.data.quType === 4) {
                   this.radioValue = res.data.answerContent
                 }
+              } else if (res.data.quType === 5) {
+                this.initFillAnswers(this.quDetail, res.data.answerContent)
               } else if (res.data.quType === 2) {
                 const arr = res.data.answerContent.split(',')
                 arr.forEach(element => {
@@ -844,14 +919,17 @@ export default {
         case 2: return this.paperData.multiList
         case 3: return this.paperData.judgeList
         case 4: return this.paperData.saqList
+        case 5: return this.paperData.fillList
       }
     },
     getLastTypeIndex() {
+      if (this.paperData.fillList.length > 0) return 5
       if (this.paperData.saqList.length > 0) return 4
       if (this.paperData.judgeList.length > 0) return 3
       if (this.paperData.multiList.length > 0) return 2
       return 1
-    }
+    },
+    renderStemWithBlanks
   }
 }
 </script>
@@ -1033,6 +1111,28 @@ page {
   background-color: #f9f0ff;
   color: #722ed1;
   border: 1px solid #d3adf7;
+}
+
+.fill-blank {
+  background-color: #ecfeff;
+  color: #0e7490;
+  border: 1px solid #a5f3fc;
+}
+
+.fill-blank-area {
+  margin-top: 12px;
+}
+
+.fill-blank-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fill-blank-label {
+  flex-shrink: 0;
+  width: 56px;
+  color: #334155;
 }
 
 </style>

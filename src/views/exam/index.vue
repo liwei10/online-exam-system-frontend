@@ -64,6 +64,15 @@
             :current-item="cardItem"
             @select-question="onSelectQuestion"
           />
+
+          <!-- 填空题答题卡 -->
+          <question-card-section
+            v-if="hasQuestions(paperData.fillList)"
+            title="填空题"
+            :questions="paperData.fillList"
+            :current-item="cardItem"
+            @select-question="onSelectQuestion"
+          />
         </el-card>
       </el-col>
 
@@ -71,7 +80,9 @@
       <el-col :span="19" :xs="24" class="exam-question-col">
         <el-card class="qu-content content-h">
           <!-- 题干 -->
-          <p v-if="quData.content" class="question-content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
+          <p v-if="quData.content" class="question-content">
+            {{ quData.sort + 1 }}.{{ quData.quType === 5 ? renderStemWithBlanks(quData.content) : quData.content }}
+          </p>
           <p v-if="quData.image">
             <el-image :src="quData.image"
             :preview-src="[quData.image]" 
@@ -124,6 +135,22 @@
               :autosize="{ minRows: 2, maxRows: 4 }"
               placeholder="请输入内容"
             />
+          </div>
+
+          <!-- 填空题区域 -->
+          <div v-if="quData.quType === 5" class="fill-blank-area">
+            <div
+              v-for="(ans, idx) in fillAnswers"
+              :key="'fill-' + idx"
+              class="fill-blank-row"
+            >
+              <span class="fill-blank-label">空{{ idx + 1 }}：</span>
+              <el-input
+                v-model="fillAnswers[idx]"
+                placeholder="请输入该空答案"
+                clearable
+              />
+            </div>
           </div>
 
           <!-- 提交前汇总对话框 -->
@@ -200,6 +227,12 @@ import ExamTimer from '@/components/ExamTimer'
 import QuestionCardSection from './components/QuestionCardSection'
 import ExamSummaryDialog from './components/ExamSummaryDialog'
 import AudioPlayer from '@/components/AudioPlayer'
+import {
+  renderStemWithBlanks,
+  splitAnswers,
+  joinAnswers,
+  countBlanks
+} from '@/utils/blankPlaceholder'
 
 export default {
   name: 'ExamProcess',
@@ -220,6 +253,7 @@ export default {
       loading: false,
       handleText: '交卷',
       saqTextarea: '',
+      fillAnswers: [],
       pageLoading: false,
       // 试卷ID
       paperId: '',
@@ -241,7 +275,8 @@ export default {
         radioList: [],
         multiList: [],
         judgeList: [],
-        saqList: []
+        saqList: [],
+        fillList: []
       },
       // 单选选定值
       radioValue: '',
@@ -483,11 +518,12 @@ export default {
       // 准备答案数据
       let answerContent = ''
       if (currentQuType === 4) {
-        ('简答题');
         // 简答题答案
         answerContent = this.saqTextarea.trim() // 去除首尾空格
+      } else if (currentQuType === 5) {
+        const hasFill = (this.fillAnswers || []).some(a => a != null && String(a).trim() !== '')
+        answerContent = hasFill ? joinAnswers(this.fillAnswers) : ''
       } else {
-        ('单选、多选、判断题')
         // 单选、多选、判断题答案
         const answers = [] // 使用空数组初始化
         if (currentQuType === 2) { // 多选
@@ -618,6 +654,7 @@ export default {
       updateListStatus(this.paperData.multiList)
       updateListStatus(this.paperData.judgeList)
       updateListStatus(this.paperData.saqList)
+      updateListStatus(this.paperData.fillList)
     },
 
     // 提交最后一题答案
@@ -633,6 +670,9 @@ export default {
       if (currentQuType === 4) {
         // 简答题答案
         answerContent = this.saqTextarea.trim()
+      } else if (currentQuType === 5) {
+        const hasFill = (this.fillAnswers || []).some(a => a != null && String(a).trim() !== '')
+        answerContent = hasFill ? joinAnswers(this.fillAnswers) : ''
       } else {
         // 单选、多选、判断题答案
         const answers = []
@@ -726,7 +766,7 @@ export default {
       // 打开
       const loading = Loading.service({
         text: '正在查询请等待',
-        background: 'rgba(0, 0, 0, 0.7)'
+        background: 'rgba(232, 242, 239, 0.72)'
       })
 
       // 获得详情
@@ -738,6 +778,7 @@ export default {
       // 在请求新数据前，清空上一题的答案状态，避免显示残留
       this.radioValue = ''
       this.multiValue = []
+      this.fillAnswers = []
       // 简答题不清空，因为 fetchQuData 会覆盖它
 
       quDetail(params).then((response) => {
@@ -747,6 +788,20 @@ export default {
         if (response.data.quType === 4) {
            // 后端返回的 answerList[0].content 应该是用户之前填写的简答题内容
            this.saqTextarea = response.data.answerList?.[0]?.content || '' // 安全访问
+        } else if (response.data.quType === 5) {
+          const blankCount = countBlanks(response.data.content) ||
+            (response.data.answerList && response.data.answerList.length) || 1
+          const raw = response.data.userAnswer ||
+            response.data.answer ||
+            response.data.answerList?.[0]?.content ||
+            this.submittedAnswers[item.questionId] ||
+            ''
+          const parts = splitAnswers(raw)
+          const next = []
+          for (let i = 0; i < blankCount; i++) {
+            next.push(parts[i] != null ? parts[i] : '')
+          }
+          this.fillAnswers = next
         } else if (response.data.quType === 1 || response.data.quType === 3) {
            // 遍历选项，找到 checkout 为 true 的作为 radioValue
            const checkedOption = response.data.answerList?.find(opt => opt.checkout)
@@ -755,12 +810,6 @@ export default {
            // 遍历选项，收集所有 checkout 为 true 的 id 到 multiValue
            this.multiValue = response.data.answerList?.filter(opt => opt.checkout).map(opt => opt.id) || []
         }
-
-        // 更新已保存答案的本地副本 (如果 quDetail 返回了最新的答案)
-        // 这一步可能不需要，因为 handSave 已经维护了 this.submittedAnswers
-        // 但如果 quDetail 能确保返回最新已保存答案，可以在这里同步一下
-        // const latestAnswerFromServer = ... // (需要从 response.data 解析出答案)
-        // this.submittedAnswers[item.questionId] = latestAnswerFromServer;
 
         // 关闭加载提示
         loading.close()
@@ -771,7 +820,6 @@ export default {
           message: '加载题目详情失败，请重试！',
           type: 'error'
         })
-        // 加载题目失败，可能需要一些回退逻辑，比如不允许切换题目？
       })
     },
 
@@ -803,6 +851,8 @@ export default {
         this.cardItem = this.paperData.judgeList[0]
       } else if (this.paperData.saqList && this.paperData.saqList.length > 0) {
         this.cardItem = this.paperData.saqList[0]
+      } else if (this.paperData.fillList && this.paperData.fillList.length > 0) {
+        this.cardItem = this.paperData.fillList[0]
       }
     },
 
@@ -818,7 +868,10 @@ export default {
       addQuestionsToAllItems(this.paperData.multiList)
       addQuestionsToAllItems(this.paperData.judgeList)
       addQuestionsToAllItems(this.paperData.saqList)
+      addQuestionsToAllItems(this.paperData.fillList)
     },
+
+    renderStemWithBlanks,
 
     // 处理滚动事件
     handleScroll() {
@@ -851,6 +904,22 @@ page {
   white-space: pre-wrap;
   line-height: 1.6;
   word-wrap: break-word;
+}
+
+.fill-blank-area {
+  margin-top: 12px;
+}
+
+.fill-blank-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fill-blank-label {
+  flex-shrink: 0;
+  width: 56px;
+  color: #334155;
 }
 
 .qu-content div {

@@ -124,12 +124,12 @@ export default {
     },
     // 编辑公告按钮
     async updateRow(row) {
-      this.form = await this.loadNoticeDetail(row)
+      this.form = await this.withPageLoading(() => this.loadNoticeDetail(row))
       this.editVisible = true
     },
     // 查看公告按钮
     async showRow(row) {
-      this.form = await this.loadNoticeDetail(row)
+      this.form = await this.withPageLoading(() => this.loadNoticeDetail(row))
       this.showVisible = true
     },
     // 分页查询

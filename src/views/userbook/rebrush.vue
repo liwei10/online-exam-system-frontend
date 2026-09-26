@@ -1,6 +1,10 @@
 <template>
   <div
-    class="exam-page"
+    v-loading="pageLoading"
+    element-loading-text="正在查询请等待"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(232, 242, 239, 0.72)"
+    class="exam-page page-loading-host"
     style="
       width: 100%;
       height: 100%;
@@ -30,7 +34,7 @@
           <!-- 题干 -->
           <p v-if="quData.content">
             <span>({{ getQuestionType(quData.quType) }}) {{ index + 1 }}.</span>
-            {{ quData.content }}
+            {{ quData.quType === 5 ? renderStemWithBlanks(quData.content) : quData.content }}
           </p>
           <p v-if="quData.image != null && quData.image != ''">
             <el-image :src="quData.image" style="max-width: 200px" />
@@ -107,27 +111,42 @@
               :autosize="{ minRows: 2, maxRows: 4 }"
               placeholder="请输入内容"
             />
-            <!-- <el-checkbox-group v-model="multiValue"> -->
-            <!-- <el-checkbox
-                v-for="item in quData.answerList"
-                :key="item.id"
-                :label="item.id"
-                >{{  numberToLetter(item.sort)  }}.{{ item.content }}
-                <div v-if="item.image != null && item.image != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100%" />
-                </div>
-              </el-checkbox> -->
-            <!-- </el-checkbox-group> -->
           </div>
           <div
             v-if="flag == true && quData.quType === 4"
             style="margin-top: 10px"
           >
-            <!-- <div>
-              <span>我的答案:{{ myAnswers }}</span>
-            </div> -->
             <div>
               <span>正确答案: {{ failQuData.rightAnswers }}</span>
+            </div>
+            <div>
+              <span>试题分析: {{ failQuData.analysis }}</span>
+            </div>
+          </div>
+
+          <div v-if="quData.quType === 5" class="fill-blank-area">
+            <div
+              v-for="(ans, idx) in fillAnswers"
+              :key="'rb-fill-' + idx"
+              class="fill-blank-row"
+            >
+              <span class="fill-blank-label">空{{ idx + 1 }}：</span>
+              <el-input
+                v-model="fillAnswers[idx]"
+                placeholder="请输入该空答案"
+                clearable
+              />
+            </div>
+          </div>
+          <div
+            v-if="flag == true && quData.quType === 5"
+            style="margin-top: 10px"
+          >
+            <div
+              v-for="(ans, aIdx) in splitFillAnswers(failQuData.rightAnswers)"
+              :key="'rb-right-' + aIdx"
+            >
+              <span>正确答案（空{{ aIdx + 1 }}）：{{ ans }}</span>
             </div>
             <div>
               <span>试题分析: {{ failQuData.analysis }}</span>
@@ -149,8 +168,16 @@
 <script>
 import { fullBook, getSingleQu, getUserBookList } from "@/api/userbook";
 import AudioPlayer from "@/components/AudioPlayer";
+import pageLoading from "@/mixin/pageLoading";
+import {
+  renderStemWithBlanks,
+  splitAnswers,
+  joinAnswers,
+  countBlanks,
+} from "@/utils/blankPlaceholder";
 export default {
   components: { AudioPlayer },
+  mixins: [pageLoading],
   data() {
     return {
       repoId: "",
@@ -182,6 +209,7 @@ export default {
       // 已答ID
       answeredIds: [],
       saqTextarea: "",
+      fillAnswers: [],
       myAnswers: "",
       lastIndex: 0,
       paperData: {
@@ -229,16 +257,26 @@ export default {
     },
 
     getSingleQuFun(quId) {
-      getSingleQu(quId).then((res) => {
+      return getSingleQu(quId).then((res) => {
         this.quData = res.data;
+        if (res.data && res.data.quType === 5) {
+          const blankCount =
+            countBlanks(res.data.content) ||
+            (res.data.answerList && res.data.answerList.length) ||
+            1;
+          this.fillAnswers = Array.from({ length: blankCount }, () => "");
+        } else {
+          this.fillAnswers = [];
+        }
       });
     },
     getUserBookListFun() {
-      getUserBookList(this.examId).then((res) => {
+      return this.withPageLoading(async () => {
+        const res = await getUserBookList(this.examId);
         this.userBookList = res.data;
         this.quDataLen = res.data.length;
-        this.getSingleQuFun(res.data[this.index]["quId"]);
         this.lastIndex = this.userBookList.length;
+        await this.getSingleQuFun(res.data[this.index]["quId"]);
       });
     },
     numberToLetter(input) {
@@ -278,9 +316,14 @@ export default {
         1: '单选题',
         2: '多选题',
         3: '判断题',
-        4: '简答题'
+        4: '简答题',
+        5: '填空题'
       }
       return typeMap[type] || '未知类型'
+    },
+    renderStemWithBlanks,
+    splitFillAnswers(val) {
+      return splitAnswers(val)
     },
     /**
      * 下一题
@@ -319,6 +362,11 @@ export default {
         } else if (this.quData.quType === 4) {
           // 简答题
           answer = this.saqTextarea;
+        } else if (this.quData.quType === 5) {
+          const hasFill = (this.fillAnswers || []).some(
+            (a) => a != null && String(a).trim() !== ""
+          );
+          answer = hasFill ? joinAnswers(this.fillAnswers) : "";
         }
 
         const params = {
@@ -364,7 +412,9 @@ export default {
     },
     // 试卷详情
     fetchQuData(index) {
-      this.getSingleQuFun(this.userBookList[index]["quId"]);
+      this.withPageLoading(() =>
+        this.getSingleQuFun(this.userBookList[index]["quId"])
+      );
     },
   },
 };
@@ -372,6 +422,22 @@ export default {
 <style scoped>
 page {
   background: #e8f2ef;
+}
+
+.fill-blank-area {
+  margin-top: 12px;
+}
+
+.fill-blank-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fill-blank-label {
+  flex-shrink: 0;
+  width: 56px;
+  color: #334155;
 }
 
 .btn_anniu {

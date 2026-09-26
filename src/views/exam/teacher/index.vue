@@ -190,6 +190,30 @@
             </el-form-item>
           </el-form>
         </el-col>
+        <el-col :span="12">
+          <el-form :model="form">
+            <el-form-item label="填空题数量" :label-width="formLabelWidth">
+              <el-input v-model="showExamData.fillCount" :disabled="true" />
+            </el-form-item>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form :model="form">
+            <el-form-item label="填空题分数" :label-width="formLabelWidth">
+              <el-input v-model="showExamData.fillScore" :disabled="true" />
+            </el-form-item>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form :model="form">
+            <el-form-item label="填空需批改" :label-width="formLabelWidth">
+              <el-switch
+                :value="showExamData.fillNeedMark === 1 || showExamData.fillNeedMark === true"
+                disabled
+              />
+            </el-form-item>
+          </el-form>
+        </el-col>
 
       </el-row>
       <div style="display: flex; justify-content: flex-end; with: 100%">
@@ -263,6 +287,26 @@
           <el-form :model="form">
             <el-form-item label="简答题分数" :label-width="formLabelWidth">
               <el-input v-model="form.saqScore" />
+            </el-form-item>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form :model="form">
+            <el-form-item label="填空题分数" :label-width="formLabelWidth">
+              <el-input v-model="form.fillScore" />
+            </el-form-item>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form :model="form">
+            <el-form-item label="填空需批改" :label-width="formLabelWidth">
+              <el-switch
+                v-model="form.fillNeedMark"
+                :active-value="1"
+                :inactive-value="0"
+                active-text="是"
+                inactive-text="否"
+              />
             </el-form-item>
           </el-form>
         </el-col>
@@ -386,6 +430,10 @@ export default {
         radioScore: this.form.radioScore,
 
         saqScore: this.form.saqScore,
+
+        fillScore: this.form.fillScore,
+
+        fillNeedMark: this.form.fillNeedMark === 1 || this.form.fillNeedMark === true ? 1 : 0,
 
         title: this.form.title
       }

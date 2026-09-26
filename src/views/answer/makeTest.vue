@@ -64,16 +64,28 @@
               <template v-for="(item, index) in waitQuList">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
                 <div :class="'index' + index">
-                  <!-- 简答 -->
+                  <!-- 简答 / 填空 -->
                   <el-row :gutter="24">
                     <el-col :span="20" style="text-align: left">
                       <!-- 题目: 序号、类型、题干 -->
                       <div>
-                        <!-- <div class="qu_num">{{ item.quId }}</div>
-                      【 简答题 】 -->
-                        <div class="qu_content">{{ index + 1 }}. {{ item.quTitle }}</div>
+                        <div class="qu_content">
+                          {{ index + 1 }}.
+                          <span v-if="item.quType === 5" class="qu-type-tag">【填空题】</span>
+                          <span v-else class="qu-type-tag">【简答题】</span>
+                          {{ item.quType === 5 ? renderStemWithBlanks(item.quTitle) : item.quTitle }}
+                        </div>
                       </div>
-                      <div class="content">
+                      <div v-if="item.quType === 5" class="content fill-answers">
+                        <div
+                          v-for="(ans, aIdx) in splitFillAnswers(item.answer)"
+                          :key="'mk-ans-' + aIdx"
+                          style="margin-bottom: 4px"
+                        >
+                          空{{ aIdx + 1 }}：{{ ans || '（未作答）' }}
+                        </div>
+                      </div>
+                      <div v-else class="content">
                         {{ item.answer }}
                       </div>
                       <!-- 题目解析 -->
@@ -98,7 +110,16 @@
                           <div style="margin-top: 18px">
                             <span>参考答案:</span>
                             <br/>
-                            <span>{{ item.refAnswer }}</span>
+                            <template v-if="item.quType === 5">
+                              <div
+                                v-for="(ans, aIdx) in splitFillAnswers(item.refAnswer)"
+                                :key="'mk-ref-' + aIdx"
+                                style="margin-top: 4px"
+                              >
+                                空{{ aIdx + 1 }}：{{ ans || '-' }}
+                              </div>
+                            </template>
+                            <span v-else>{{ item.refAnswer }}</span>
                             <br/><br/>
                             <span v-if="item.aiReason!==null">AI评分</span>
                             <br/>
@@ -137,6 +158,7 @@
 // {{ computedStatus(userForm.agencyBaseVO.status) }}
 import { answerDetail, correct } from '@/api/answer'
 import pageLoading from '@/mixin/pageLoading'
+import { renderStemWithBlanks, splitAnswers } from '@/utils/blankPlaceholder'
 export default {
   mixins: [pageLoading],
 //   computedStatus(val) {
@@ -160,6 +182,10 @@ export default {
     this.getUserAnswerDetail()
   },
   methods: {
+    renderStemWithBlanks,
+    splitFillAnswers(val) {
+      return splitAnswers(val)
+    },
     // 点击答题卡题号, 右侧题目滑动
     handleTag(index) {
       // 高亮选中的题目index标签
@@ -173,7 +199,8 @@ export default {
       await this.withPageLoading(async() => {
         const params = { userId: this.info.userId, examId: this.info.examId }
         const res = await answerDetail(params)
-        this.waitQuList = res.data
+        // correctScore 由接口预填（含填空题）
+        this.waitQuList = res.data || []
       })
     },
     subCorrect() {
@@ -237,6 +264,15 @@ export default {
   margin-left: 10px;
   padding: 10px;
   font-weight: 200;
+}
+.content.fill-answers {
+  height: auto;
+  min-height: 60px;
+}
+.qu-type-tag {
+  color: #0f766e;
+  font-weight: 600;
+  margin-right: 4px;
 }
 .ann {
   width: 130px;
